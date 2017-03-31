@@ -38,7 +38,9 @@ local Win = {
 	Item   = nil,
 	ItemLabel = nil,
 	Inv    = nil,
-	CmdScroll = nil,
+	ScrollCmd = nil,
+	ScrollInv = nil,
+	InputRate = nil,
 
 
 	UI = nil,
@@ -49,7 +51,7 @@ local Win = {
 function Win:OnInit()
 
 	self.Res = getResolution()
-	self.Size = vec2(800,600)
+	self.Size = vec2(800,400)
 	self.UI = ScriptUI()
 
 	self.Window = self.UI:createWindow(Rect(
@@ -89,6 +91,11 @@ function Win:BuildUI()
 		0, 0, 0.5
 	)
 
+	local TRLister = UIVerticalLister(
+		TPane.left,
+		0, 0
+	)
+
 	local FontSize1 = 20
 	local LineHeight1 = FontSize1 + 4
 
@@ -109,12 +116,24 @@ function Win:BuildUI()
 
 	-- create the list of things in your inventory
 
-	self.Inv = self.Window:createSelection(Pane.bottom,11)
+	self.Inv = self.Window:createSelection(Pane.bottom,12)
 	self.Inv.onClickedFunction = "Win_OnInvClicked"
 
 	-- create the list of things you can do.
 
-	self.CmdScroll = self.Window:createScrollFrame(TPane.right)
+	self.ScrollCmd = self.Window:createScrollFrame(TPane.right)
+
+	for Iter=1,10,1
+	do
+		local Thing = self.ScrollCmd:createLabel(
+			TRLister:nextRect(FontSize1).position,
+			"data/textures/icons/cash.png - " .. Iter,
+			FontSize1
+		)
+
+		--Thing.centered = true
+		Thing.width = 100
+	end
 
 	return
 end
