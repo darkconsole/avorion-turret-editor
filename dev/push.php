@@ -7,14 +7,14 @@
 
 define('ProjectRoot','..');
 define('StockDir', '/avorion-0.11.0.7844/data/scripts');
-define('ModDir', '/avorion-turret-upgrade/data/scripts');
+define('ModDir', '/avorion-turret-editor/data/scripts');
 define('RemoteDir','Z:\home\avorion\steamcmd\avorion\data\scripts');
 define('LocalDir','D:\Games\Steam\steamapps\common\Avorion\data\scripts');
 
 define('Files',[
 	'/commands/turretupgrade.lua'               => '/patch-commands-turretupgrade.diff',
-	'/lib/dcc-turret-upgrade/cmd-inventory.lua' => '/patch-lib-dcc-turrent-upgrade-cmd-inventory.diff',
-	'/lib/dcc-turret-upgrade/ui-turret-upgrade.lua' => '/patch-lib-dcc-turrent-upgrade-ui-turret-upgrade.diff'
+	'/lib/dcc-turret-editor/cmd-inventory.lua' => '/patch-lib-dcc-turrent-editor-cmd-inventory.diff',
+	'/lib/dcc-turret-editor/ui-turret-editor.lua' => '/patch-lib-dcc-turrent-editor-ui-turret-editor.diff'
 ]);
 
 ////////////////////////////////////////////////////////////////////////////////
