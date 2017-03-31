@@ -38,6 +38,7 @@ local Win = {
 	Item   = nil,
 	ItemLabel = nil,
 	Inv    = nil,
+	CmdScroll = nil,
 
 
 	UI = nil,
@@ -83,23 +84,37 @@ function Win:BuildUI()
 		0, 0, 0.5
 	)
 
+	local TRPane = UIHorizontalSplitter(
+		TPane.right,
+		0, 0, 0.5
+	)
+
+	local FontSize1 = 20
+	local LineHeight1 = FontSize1 + 4
+
 	-- create the drop target for the editor.
 
-	self.Item = self.Window:createSelection(Rect(0,0,64,64),1)
+	self.Item = self.Window:createSelection(Rect(0,0,128,128),1)
 	self.Item.dropIntoEnabled = 1
 	self.Item.entriesSelectable = 0
-	self.Item.onReceivedFunction = "Win_OnItemAdded"
-	self.Item.onDroppedFunction = "Win_OnItemDropped"
 	self.Item.onClickedFunction = "Win_OnItemClicked"
+	self.Item.onReceivedFunction = "Win_OnItemAdded"
+	self.Item.onDroppedFunction = "Win_OnItemRemoved"
 	TLPane:placeElementCenter(self.Item)
 
-	self.ItemLabel = self.Window:createLabel(self.Item.upper,"Turret",50)
-	self.ItemLabel:setTopLeftAligned()
-	--TLPane:placeElementCenter(self.ItemLabel)
+	self.ItemLabel = self.Window:createLabel(self.Item.position,"Current Turret",FontSize1-4)
+	self.ItemLabel.centered = true
+	self.ItemLabel.width = self.Item.width
+	self.ItemLabel.position = self.Item.position - vec2(0,LineHeight1)
 
 	-- create the list of things in your inventory
 
 	self.Inv = self.Window:createSelection(Pane.bottom,11)
+	self.Inv.onClickedFunction = "Win_OnInvClicked"
+
+	-- create the list of things you can do.
+
+	self.CmdScroll = self.Window:createScrollFrame(TPane.right)
 
 	return
 end
@@ -148,9 +163,81 @@ function Win:PopulateInventory()
 	return
 end
 
-function Win_OnItemAdded() print("Win_OnItemAdded") end
-function Win_OnItemDropped() print("Win_OnItemDropped") end
-function Win_OnItemClicked() print("Win_OnItemClicked") end
+--------------------------------------------------------------------------------
+
+function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
+
+	print("=== Win:OnItemAdded ===")
+	print("SelectID: " .. SelectID)
+	print("FX/Y: " .. FX .. "," .. FY)
+	print("TX/Y: " .. TX .. "," .. TY)
+	print("From/To: " .. FromIndex .. " -> " .. ToIndex)
+	print("")
+
+	self.Item:clear()
+	self.Item:add(Item)
+
+	return
+end
+
+function Win:OnItemRemoved(SelectID, FX, FY)
+
+	print("=== Win:OnItemRemoved ===")
+	print("SelectID: " .. SelectID)
+	print("FX/Y: " .. FX .. "," .. FY)
+	print("")
+
+	self.Item:clear()
+
+	return
+end
+
+function Win:OnItemClicked(SelectID, FX, FY, Item, Button)
+
+	print("=== Win:OnItemClicked ===")
+	print("SelectID: " .. SelectID)
+	print("FX/Y: " .. FX .. "," .. FY)
+	print("Button: " .. Button)
+	print("")
+
+	-- emulate the dialogs that already exist in the game, when the item is
+	-- right clicked clear it from the selection place.
+
+	if(Button == 3)
+	then
+		self.Item:clear()
+		return
+	end
+
+	return
+end
+
+function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
+
+	print("=== Win:OnInvClicked ===")
+	print("SelectID: " .. SelectID)
+	print("FX/Y: " .. FX .. "," .. FY)
+	print("Button: " .. Button)
+	print("")
+
+	-- emulate the dialogs that already exist in the game, when the item is
+	-- right clicked add it to the selection place.
+
+	if(Button == 3)
+	then
+		self.Item:clear()
+		self.Item:add(Item)
+	end
+
+	return
+end
+
+--------------------------------------------------------------------------------
+
+function Win_OnItemAdded(...) Win:OnItemAdded(...) end
+function Win_OnItemClicked(...) Win:OnItemClicked(...) end
+function Win_OnItemRemoved(...) Win:OnItemRemoved(...) end
+function Win_OnInvClicked(...) Win:OnInvClicked(...) end
 
 --------------------------------------------------------------------------------
 
