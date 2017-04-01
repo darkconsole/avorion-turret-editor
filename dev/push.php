@@ -48,7 +48,7 @@ foreach(Files as $File => $Patch) {
 	);
 
 	//echo $Command, PHP_EOL;
-	system($Command);
+//	system($Command);
 
 	$Command = sprintf(
 		'xcopy /R /Y %s %s',

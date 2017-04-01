@@ -31,6 +31,31 @@ end
 
 --------------------------------------------------------------------------------
 
+-- utility functions.
+
+function FramedRect(Container,X,Y,Cols,Rows,Padding)
+-- for this trained rekt. give it a container you want to grid things out into
+-- the column,row you are trying to put the thing in, how many columns and rows
+-- there should be, and optionally padding. get a rect that will work sometimes.
+
+	if(Padding == nil)
+	then Padding = 4 end
+
+	local TopLeft = vec2(
+		(Container.rect.topLeft.x + ((Container.rect.width / Cols) * (X - 1))) + Padding,
+		(Container.rect.topLeft.y + ((Container.rect.height / Rows) * (Y - 1))) + Padding
+	)
+
+	local BottomRight = vec2(
+		(TopLeft.x + (Container.rect.width / Cols)) - (Padding*2),
+		(TopLeft.y + (Container.rect.height / Rows)) - (Padding*2)
+	)
+
+	return Rect(TopLeft,BottomRight)
+end
+
+--------------------------------------------------------------------------------
+
 local Win = {
 	Title = "Turret Editor",
 
@@ -38,10 +63,42 @@ local Win = {
 	Item   = nil,
 	ItemLabel = nil,
 	Inv    = nil,
-	ScrollCmd = nil,
-	ScrollInv = nil,
-	InputRate = nil,
 
+	LabelProjColour = nil,
+	InputProjColourH = nil,
+	InputProjColourS = nil,
+	InputProjColourV = nil,
+	ApplyProjColour = nil,
+
+	LabelCoreColour = nil,
+	InputCoreColourH = nil,
+	InputCoreColourS = nil,
+	InputCoreColourV = nil,
+	ApplyCoreColour = nil,
+
+	LabelGlowColour = nil,
+	InputGlowColourH = nil,
+	InputGlowColourS = nil,
+	InputGlowColourV = nil,
+	ApplyGlowColour = nil,
+
+	InputRange = nil,
+	ApplyRange = nil,
+
+	InputRate = nil,
+	ApplyRate = nil,
+
+	InputHeat = nil,
+	ApplyHeat = nil,
+
+	InputEnergy = nil,
+	ApplyEnergy = nil,
+
+	InputTracking = nil,
+	ApplyTracking = nil,
+
+	LabelTargeting = nil,
+	ToggleTargeting = nil,
 
 	UI = nil,
 	Res = nil,
@@ -51,7 +108,7 @@ local Win = {
 function Win:OnInit()
 
 	self.Res = getResolution()
-	self.Size = vec2(800,400)
+	self.Size = vec2(900,600)
 	self.UI = ScriptUI()
 
 	self.Window = self.UI:createWindow(Rect(
@@ -73,12 +130,12 @@ function Win:BuildUI()
 
 	local Pane = UIHorizontalSplitter(
 		Rect(self.Window.size),
-		10, 10, 0.5
+		10, 10, 0.6
 	)
 
 	local TPane = UIVerticalSplitter(
 		Pane.top,
-		0, 0, 0.5
+		0, 0, 0.25
 	)
 
 	local TLPane = UIHorizontalSplitter(
@@ -88,7 +145,7 @@ function Win:BuildUI()
 
 	local TRPane = UIHorizontalSplitter(
 		TPane.right,
-		0, 0, 0.5
+		4, 0, 0.5
 	)
 
 	local TRLister = UIVerticalLister(
@@ -97,6 +154,7 @@ function Win:BuildUI()
 	)
 
 	local FontSize1 = 20
+	local FontSize2 = 14
 	local LineHeight1 = FontSize1 + 4
 
 	-- create the drop target for the editor.
@@ -121,19 +179,186 @@ function Win:BuildUI()
 
 	-- create the list of things you can do.
 
-	self.ScrollCmd = self.Window:createScrollFrame(TPane.right)
+	local Frame = self.Window:createFrame(TRPane.rect)
+	local Element
+	local Rows = 6
+	local Cols = 3
 
-	for Iter=1,10,1
-	do
-		local Thing = self.ScrollCmd:createLabel(
-			TRLister:nextRect(FontSize1).position,
-			"data/textures/icons/cash.png - " .. Iter,
-			FontSize1
-		)
+	-- projectile colour
 
-		--Thing.centered = true
-		Thing.width = 100
-	end
+	self.LabelProjColour = self.Window:createLabel(
+		FramedRect(TRPane,1,1,Cols,Rows).topLeft,
+		"Projectile Colour HSV:",
+		FontSize1
+	)
+	self.LabelProjColour.centered = true
+	self.LabelProjColour.width = FramedRect(TRPane,1,1,Cols,Rows).width
+	self.LabelProjColour.height = FramedRect(TRPane,1,1,Cols,Rows).height
+	self.LabelProjColour:setRightAligned()
+
+	self.InputProjColourH = self.Window:createTextBox(
+		FramedRect(TRPane,4,1,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputProjColourS = self.Window:createTextBox(
+		FramedRect(TRPane,5,1,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputProjColourV = self.Window:createTextBox(
+		FramedRect(TRPane,6,1,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyProjColour = self.Window:createButton(
+		FramedRect(TRPane,3,1,Cols,Rows),
+		"Apply",
+		"Win_OnButtonClicked"
+	)
+
+	-- core colour
+
+	self.LabelCoreColour = self.Window:createLabel(
+		FramedRect(TRPane,1,2,Cols,Rows).topLeft,
+		"Core Colour HSV:",
+		FontSize1
+	)
+	self.LabelCoreColour.width = FramedRect(TRPane,1,2,Cols,Rows).width
+	self.LabelCoreColour.height = FramedRect(TRPane,1,2,Cols,Rows).height
+	self.LabelCoreColour:setRightAligned()
+
+	self.InputCoreColourH = self.Window:createTextBox(
+		FramedRect(TRPane,4,2,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputCoreColourS = self.Window:createTextBox(
+		FramedRect(TRPane,5,2,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputCoreColourV = self.Window:createTextBox(
+		FramedRect(TRPane,6,2,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyCoreColour = self.Window:createButton(
+		FramedRect(TRPane,3,2,Cols,Rows),
+		"Apply",
+		"Win_OnButtonClicked"
+	)
+
+	-- glow colour
+
+	self.LabelGlowColour = self.Window:createLabel(
+		FramedRect(TRPane,1,3,Cols,Rows).topLeft,
+		"Glow Colour HSV:",
+		FontSize1
+	)
+	self.LabelGlowColour.width = FramedRect(TRPane,1,3,Cols,Rows).width
+	self.LabelGlowColour.height = FramedRect(TRPane,1,3,Cols,Rows).height
+	self.LabelGlowColour:setRightAligned()
+
+	self.InputGlowColourH = self.Window:createTextBox(
+		FramedRect(TRPane,4,3,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputGlowColourS = self.Window:createTextBox(
+		FramedRect(TRPane,5,3,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+	self.InputGlowColourV = self.Window:createTextBox(
+		FramedRect(TRPane,6,3,(Cols*3),Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyGlowColour = self.Window:createButton(
+		FramedRect(TRPane,3,3,Cols,Rows),
+		"Apply",
+		"Win_OnButtonClicked"
+	)
+
+	-- targeting toggle
+
+	Cols = 8
+
+	self.LabelTargeting = self.Window:createLabel(
+		FramedRect(TRPane,1,5,Cols,Rows).topLeft,
+		"On",
+		FontSize1
+	)
+	self.LabelTargeting.color = ColorHSV(80,1,1)
+	self.LabelTargeting.width = FramedRect(TRPane,1,Cols,9,Rows).width
+	self.LabelTargeting.height = FramedRect(TRPane,1,Cols,9,Rows).height
+	self.LabelTargeting:setRightAligned()
+
+	self.ToggleTargeting = self.Window:createButton(
+		FramedRect(TRPane,2,5,Cols,Rows),
+		"Targeting",
+		"Win_OnButtonClicked"
+	)
+
+	-- energy
+
+	self.InputEnergy = self.Window:createTextBox(
+		FramedRect(TRPane,4,5,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyEnergy = self.Window:createButton(
+		FramedRect(TRPane,5,5,Cols,Rows),
+		"Energy",
+		"Win_OnButtonClicked"
+	)
+
+	-- heat
+
+	self.InputHeat = self.Window:createTextBox(
+		FramedRect(TRPane,7,5,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyHeat = self.Window:createButton(
+		FramedRect(TRPane,8,5,Cols,Rows),
+		"Heat",
+		"Win_OnButtonClicked"
+	)
+
+	-- tracking
+
+	self.InputTracking = self.Window:createTextBox(
+		FramedRect(TRPane,1,6,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyTracking = self.Window:createButton(
+		FramedRect(TRPane,2,6,Cols,Rows),
+		"Speed",
+		"Win_OnButtonClicked"
+	)
+
+	-- range
+
+	self.InputRange = self.Window:createTextBox(
+		FramedRect(TRPane,4,6,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyRange = self.Window:createButton(
+		FramedRect(TRPane,5,6,Cols,Rows),
+		"Range",
+		"Win_OnButtonClicked"
+	)
+
+	-- rate
+
+	self.InputRate = self.Window:createTextBox(
+		FramedRect(TRPane,7,6,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyRate = self.Window:createButton(
+		FramedRect(TRPane,8,6,Cols,Rows),
+		"F.Rate",
+		"Win_OnButtonClicked"
+	)
 
 	return
 end
@@ -182,6 +407,77 @@ function Win:PopulateInventory()
 	return
 end
 
+function Win:UpdateFields()
+
+	Item = Player():getInventory():find(
+		 self.Item:getItem(ivec2(0,0)).uvalue
+	)
+
+	print(Item.weaponName)
+
+	self:UpdateFields_ProjectileColour(Item)
+	self:UpdateFields_CoreColour(Item)
+	self:UpdateFields_GlowColour(Item)
+	self:UpdateFields_Targeting(Item)
+	self:UpdateFields_Energy(Item)
+	self:UpdateFields_Heat(Item)
+	self:UpdateFields_Tracking(Item)
+	self:UpdateFields_Range(Item)
+	self:UpdateFields_Rate(Item)
+
+	return
+end
+
+function Win:UpdateFields_ProjectileColour(Item)
+
+	if(Item == nil)
+	then
+		return
+	end
+
+	return
+end
+
+function Win:UpdateFields_CoreColour(Item)
+
+	return
+end
+
+function Win:UpdateFields_GlowColour(Item)
+
+	return
+end
+
+function Win:UpdateFields_Targeting(Item)
+
+	return
+end
+
+function Win:UpdateFields_Energy(Item)
+
+	return
+end
+
+function Win:UpdateFields_Heat(Item)
+
+	return
+end
+
+function Win:UpdateFields_Tracking(Item)
+
+	return
+end
+
+function Win:UpdateFields_Range(Item)
+
+	return
+end
+
+function Win:UpdateFields_Rate(Item)
+
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
@@ -195,6 +491,7 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 
 	self.Item:clear()
 	self.Item:add(Item)
+	self:UpdateFields()
 
 	return
 end
@@ -246,6 +543,7 @@ function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
 	then
 		self.Item:clear()
 		self.Item:add(Item)
+		self:UpdateFields()
 	end
 
 	return
@@ -257,6 +555,9 @@ function Win_OnItemAdded(...) Win:OnItemAdded(...) end
 function Win_OnItemClicked(...) Win:OnItemClicked(...) end
 function Win_OnItemRemoved(...) Win:OnItemRemoved(...) end
 function Win_OnInvClicked(...) Win:OnInvClicked(...) end
+
+function Win_OnTextBoxChanged(...) end
+function Win_OnButtonClicked(...) end
 
 --------------------------------------------------------------------------------
 
