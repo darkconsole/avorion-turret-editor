@@ -12,22 +12,7 @@ require ("stringutility")
 
 SellableII = require("sellableinventoryitem")
 
---------------------------------------------------------------------------------
 
--- these are methods that the ui access of the game needs.
-
-function interactionPossible(Player)
-	return true, ""
-end
-
-function getIcon(Seed, Rarity)
-	return "data/textures/icons/cash.png"
-end
-
-function onCloseWindow()
-	print("onCloseWindow")
-	return
-end
 
 --------------------------------------------------------------------------------
 
@@ -90,7 +75,7 @@ function SetWeaponColour(Which,Item,Colour)
 			Weap.binnerColor = Colour
 		elseif(Which == "glow")
 		then
-			Weap.bouterColour = Colour
+			Weap.bouterColor = Colour
 		end
 
 		Item:addWeapon(Weap)
@@ -152,6 +137,24 @@ function SetWeaponRate(Item,Val)
 		Item:addWeapon(Weap)
 	end
 
+	return
+end
+
+function ReplaceInventoryItem(Index,Item,Count)
+-- replace the inventory item at the specified index with the specified thing.
+-- this hot swaps the thing with the updated version.
+
+	if(onClient())
+	then
+		invokeServerFunction("ReplaceInventoryItem",Index,Item,Count)
+		return
+	end
+
+	local Armory = Player():getInventory()
+	Armory:removeAll(Index)
+	Armory:addAt(Item,Index,Count)
+
+	invokeClientFunction(Player(),"Win_Update")
 	return
 end
 
@@ -313,7 +316,7 @@ function Win:BuildUI()
 	self.ApplyProjColour = self.Window:createButton(
 		FramedRect(TRPane,3,1,Cols,Rows),
 		"Apply",
-		"Win_OnButtonClicked"
+		"Win_OnClickedProjColour"
 	)
 
 	-- core colour
@@ -343,7 +346,7 @@ function Win:BuildUI()
 	self.ApplyCoreColour = self.Window:createButton(
 		FramedRect(TRPane,3,2,Cols,Rows),
 		"Apply",
-		"Win_OnButtonClicked"
+		"Win_OnClickedCoreColour"
 	)
 
 	-- glow colour
@@ -373,7 +376,7 @@ function Win:BuildUI()
 	self.ApplyGlowColour = self.Window:createButton(
 		FramedRect(TRPane,3,3,Cols,Rows),
 		"Apply",
-		"Win_OnButtonClicked"
+		"Win_OnClickedGlowColour"
 	)
 
 	-- targeting toggle
@@ -382,10 +385,9 @@ function Win:BuildUI()
 
 	self.LabelTargeting = self.Window:createLabel(
 		FramedRect(TRPane,1,5,Cols,Rows).topLeft,
-		"On",
+		"n/a",
 		FontSize1
 	)
-	self.LabelTargeting.color = ColorHSV(80,1,1)
 	self.LabelTargeting.width = FramedRect(TRPane,1,Cols,9,Rows).width
 	self.LabelTargeting.height = FramedRect(TRPane,1,Cols,9,Rows).height
 	self.LabelTargeting:setRightAligned()
@@ -393,7 +395,7 @@ function Win:BuildUI()
 	self.ToggleTargeting = self.Window:createButton(
 		FramedRect(TRPane,2,5,Cols,Rows),
 		"Targeting",
-		"Win_OnButtonClicked"
+		"Win_OnClickedTargeting"
 	)
 
 	-- energy
@@ -406,7 +408,7 @@ function Win:BuildUI()
 	self.ApplyEnergy = self.Window:createButton(
 		FramedRect(TRPane,5,5,Cols,Rows),
 		"Eng/Sec",
-		"Win_OnButtonClicked"
+		"Win_OnClickedEnergy"
 	)
 
 	-- heat
@@ -419,7 +421,7 @@ function Win:BuildUI()
 	self.ApplyHeat = self.Window:createButton(
 		FramedRect(TRPane,8,5,Cols,Rows),
 		"Heat",
-		"Win_OnButtonClicked"
+		"Win_OnClickedHeat"
 	)
 
 	-- tracking
@@ -432,7 +434,7 @@ function Win:BuildUI()
 	self.ApplyTracking = self.Window:createButton(
 		FramedRect(TRPane,2,6,Cols,Rows),
 		"Speed",
-		"Win_OnButtonClicked"
+		"Win_OnClickedTracking"
 	)
 
 	-- range
@@ -445,7 +447,7 @@ function Win:BuildUI()
 	self.ApplyRange = self.Window:createButton(
 		FramedRect(TRPane,5,6,Cols,Rows),
 		"Range",
-		"Win_OnButtonClicked"
+		"Win_OnClickedRange"
 	)
 
 	-- rate
@@ -458,7 +460,7 @@ function Win:BuildUI()
 	self.ApplyRate = self.Window:createButton(
 		FramedRect(TRPane,8,6,Cols,Rows),
 		"F.Rate",
-		"Win_OnButtonClicked"
+		"Win_OnClickedRate"
 	)
 
 	return
@@ -471,6 +473,8 @@ function Win:PopulateInventory()
 
 	local ItemList = {}
 	local Me = Player()
+
+	self.Inv:clear()
 
 	-- throw everything that makes sense into a table so we can sort it.
 
@@ -508,11 +512,68 @@ function Win:PopulateInventory()
 	return
 end
 
+function Win:GetCurrentItemIndex()
+
+	local Item = self.Item:getItem(ivec2(0,0))
+	if(Item == nil)
+	then return nil end
+
+	return Item.uvalue
+end
+
+function Win:GetCurrentItemCount()
+
+	return self.Item:getItem(ivec2(0,0)).amount
+end
+
+function Win:GetCurrentItemReal()
+-- get the turret we are trying to edit.
+
+	return Player():getInventory():find(
+		 self:GetCurrentItemIndex()
+	)
+end
+
+function Win:GetCurrentItem()
+-- get the turret we are trying to edit.
+
+	return self.Inv:getItem(ivec2(0,0))
+end
+
+function Win:GetCurrentItems()
+
+	return self:GetCurrentItem(), self:GetCurrentItemReal()
+end
+
+function Win:UpdateItem(Item)
+
+	self.Item:clear()
+	self.Item:add(Item)
+	self:UpdateFields()
+	return
+end
+
+function Win:UpdateItemReal(Item)
+
+	ReplaceInventoryItem(
+		self:GetCurrentItemIndex(),
+		Item,
+		self:GetCurrentItemCount()
+	)
+	return
+end
+
+function Win:UpdateItems(Item,Real)
+	Item.item = Real
+
+	self:UpdateItem(Item)
+	self:UpdateItemReal(Real)
+	return
+end
+
 function Win:UpdateFields()
 
-	Item = Player():getInventory():find(
-		 self.Item:getItem(ivec2(0,0)).uvalue
-	)
+	Item = self:GetCurrentItemReal()
 
 	self:UpdateFields_ProjectileColour(Item)
 	self:UpdateFields_CoreColour(Item)
@@ -539,9 +600,9 @@ function Win:UpdateFields_ProjectileColour(Item)
 	end
 
 	local Colour = GetWeaponColour("projectile",Item)
-	self.InputProjColourH.text = Colour.hue
-	self.InputProjColourS.text = Colour.saturation
-	self.InputProjColourV.text = Colour.value
+	self.InputProjColourH.text = round(Colour.hue,2)
+	self.InputProjColourS.text = round(Colour.saturation,2)
+	self.InputProjColourV.text = round(Colour.value,2)
 	self.ApplyProjColour.caption = "Apply"
 
 	return
@@ -559,9 +620,9 @@ function Win:UpdateFields_CoreColour(Item)
 	end
 
 	local Colour = GetWeaponColour("core",Item)
-	self.InputCoreColourH.text = Colour.hue
-	self.InputCoreColourS.text = Colour.saturation
-	self.InputCoreColourV.text = Colour.value
+	self.InputCoreColourH.text = round(Colour.hue,2)
+	self.InputCoreColourS.text = round(Colour.saturation,2)
+	self.InputCoreColourV.text = round(Colour.value,2)
 	self.ApplyCoreColour.caption = "Apply"
 
 	return
@@ -579,9 +640,9 @@ function Win:UpdateFields_GlowColour(Item)
 	end
 
 	local Colour = GetWeaponColour("glow",Item)
-	self.InputGlowColourH.text = Colour.hue
-	self.InputGlowColourS.text = Colour.saturation
-	self.InputGlowColourV.text = Colour.value
+	self.InputGlowColourH.text = round(Colour.hue,2)
+	self.InputGlowColourS.text = round(Colour.saturation,2)
+	self.InputGlowColourV.text = round(Colour.value,2)
 	self.ApplyGlowColour.caption = "Apply"
 
 	return
@@ -595,7 +656,7 @@ function Win:UpdateFields_Targeting(Item)
 		self.LabelTargeting.color = ColorHSV(12,1,1)
 	else
 		self.LabelTargeting.caption = "On"
-		self.LabelTargeting.color = ColorHSV(55,1,1)
+		self.LabelTargeting.color = ColorHSV(80,1,1)
 	end
 
 	return
@@ -687,7 +748,7 @@ function Win:OnItemRemoved(SelectID, FX, FY)
 	print("")
 
 	self.Item:clear()
-
+	self:UpdateFields()
 	return
 end
 
@@ -732,17 +793,119 @@ function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
 	return
 end
 
+function Win:OnClickedProjColour(Btn)
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	local Item, Real = self:GetCurrentItems()
+	local H = tonumber(self.InputProjColourH.text) or 0
+	local S = tonumber(self.InputProjColourS.text) or 1
+	local V = tonumber(self.InputProjColourV.text) or 1
+
+	print("Projectile Colour: "..H..","..S..","..V)
+	SetWeaponColour("projectile",Real,ColorHSV(H,S,V))
+
+	self:UpdateItems(Item,Real)
+	return
+end
+
+function Win:OnClickedCoreColour(Btn)
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	local Item, Real = self:GetCurrentItems()
+	local H = tonumber(self.InputCoreColourH.text) or 0
+	local S = tonumber(self.InputCoreColourS.text) or 1
+	local V = tonumber(self.InputCoreColourV.text) or 1
+
+	print("Core Colour: "..H..","..S..","..V)
+	SetWeaponColour("core",Real,ColorHSV(H,S,V))
+
+	self:UpdateItems(Item,Real)
+	return
+end
+
+function Win:OnClickedGlowColour(Btn)
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	local Item, Real = self:GetCurrentItems()
+	local H = tonumber(self.InputGlowColourH.text) or 0
+	local S = tonumber(self.InputGlowColourS.text) or 1
+	local V = tonumber(self.InputGlowColourV.text) or 1
+
+	print("Glow Colour: "..H..","..S..","..V)
+	SetWeaponColour("glow",Real,ColorHSV(H,S,V))
+
+	self:UpdateItems(Item,Real)
+	return
+end
+
+function Win:OnClickedTargeting()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Toggle Targeting")
+	local Item, Real = self:GetCurrentItems()
+
+	Real.automatic = not Real.automatic
+
+	self:UpdateItems(Item,Real)
+	return
+end
+
 --------------------------------------------------------------------------------
+
+function Win_Update(...)
+
+	Win:PopulateInventory()
+	Win:UpdateFields()
+	return
+end
 
 function Win_OnItemAdded(...) Win:OnItemAdded(...) end
 function Win_OnItemClicked(...) Win:OnItemClicked(...) end
 function Win_OnItemRemoved(...) Win:OnItemRemoved(...) end
 function Win_OnInvClicked(...) Win:OnInvClicked(...) end
 
+function Win_OnClickedProjColour(...) Win:OnClickedProjColour(...) end
+function Win_OnClickedCoreColour(...) Win:OnClickedCoreColour(...) end
+function Win_OnClickedGlowColour(...) Win:OnClickedGlowColour(...) end
+function Win_OnClickedTargeting(...) Win:OnClickedTargeting(...) end
+function Win_OnClickedEnergy(...) end
+function Win_OnClickedHeat(...) end
+function Win_OnClickedTracking(...) end
+function Win_OnClickedRange(...) end
+function Win_OnClickedRate(...) end
+
 function Win_OnTextBoxChanged(...) end
 function Win_OnButtonClicked(...) end
 
 --------------------------------------------------------------------------------
+
+-- these are methods that the ui access of the game needs.
+
+function interactionPossible(Player)
+	return true, ""
+end
+
+function getIcon(Seed, Rarity)
+	return "data/textures/icons/cash.png"
+end
+
+function onCloseWindow()
+	print("onCloseWindow")
+	return
+end
+
+function onShowWindow()
+	Win:PopulateInventory()
+	return
+end
 
 function initialize()
 -- script bootstrapping.
