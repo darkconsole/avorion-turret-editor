@@ -54,6 +54,107 @@ function FramedRect(Container,X,Y,Cols,Rows,Padding)
 	return Rect(TopLeft,BottomRight)
 end
 
+function GetWeaponColour(Which,Item)
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		if(Which == "projectile")
+		then
+			return Weap.pcolor
+		elseif(Which == "core")
+		then
+			return Weap.binnerColor
+		elseif(Which == "glow")
+		then
+			return Weap.bouterColor
+		end
+	end
+
+	return
+end
+
+function SetWeaponColour(Which,Item,Colour)
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		if(Which == "projectile")
+		then
+			Weap.pcolor = Colour
+		elseif(Which == "core")
+		then
+			Weap.binnerColor = Colour
+		elseif(Which == "glow")
+		then
+			Weap.bouterColour = Colour
+		end
+
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function GetWeaponRange(Item)
+-- get weapon range in km.
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		return Weap.reach / 100
+	end
+
+	return
+end
+
+function SetWeaponRange(Item,Dist)
+-- set weapon range in km.
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		Weap.reach = Dist * 100
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function GetWeaponRate(Item)
+-- get weapon range in km.
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		return Weap.fireRate
+	end
+
+	return
+end
+
+function SetWeaponRate(Item,Val)
+-- set weapon range in km.
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		Weap.fireRate = Val
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
 --------------------------------------------------------------------------------
 
 local Win = {
@@ -304,7 +405,7 @@ function Win:BuildUI()
 
 	self.ApplyEnergy = self.Window:createButton(
 		FramedRect(TRPane,5,5,Cols,Rows),
-		"Energy",
+		"Eng/Sec",
 		"Win_OnButtonClicked"
 	)
 
@@ -413,8 +514,6 @@ function Win:UpdateFields()
 		 self.Item:getItem(ivec2(0,0)).uvalue
 	)
 
-	print(Item.weaponName)
-
 	self:UpdateFields_ProjectileColour(Item)
 	self:UpdateFields_CoreColour(Item)
 	self:UpdateFields_GlowColour(Item)
@@ -430,51 +529,135 @@ end
 
 function Win:UpdateFields_ProjectileColour(Item)
 
-	if(Item == nil)
+	if(Item == nil or GetWeaponColour("projectile",Item) == nil)
 	then
+		self.InputProjColourH.text = ""
+		self.InputProjColourS.text = ""
+		self.InputProjColourV.text = ""
+		self.ApplyProjColour.caption = "n/a"
 		return
 	end
+
+	local Colour = GetWeaponColour("projectile",Item)
+	self.InputProjColourH.text = Colour.hue
+	self.InputProjColourS.text = Colour.saturation
+	self.InputProjColourV.text = Colour.value
+	self.ApplyProjColour.caption = "Apply"
 
 	return
 end
 
 function Win:UpdateFields_CoreColour(Item)
 
+	if(Item == nil or GetWeaponColour("core",Item) == nil)
+	then
+		self.InputCoreColourH.text = ""
+		self.InputCoreColourS.text = ""
+		self.InputCoreColourV.text = ""
+		self.ApplyCoreColour.caption = "n/a"
+		return
+	end
+
+	local Colour = GetWeaponColour("core",Item)
+	self.InputCoreColourH.text = Colour.hue
+	self.InputCoreColourS.text = Colour.saturation
+	self.InputCoreColourV.text = Colour.value
+	self.ApplyCoreColour.caption = "Apply"
+
 	return
 end
 
 function Win:UpdateFields_GlowColour(Item)
+
+	if(Item == nil or GetWeaponColour("glow",Item) == nil)
+	then
+		self.InputGlowColourH.text = ""
+		self.InputGlowColourS.text = ""
+		self.InputGlowColourV.text = ""
+		self.ApplyGlowColour.caption = "n/a"
+		return
+	end
+
+	local Colour = GetWeaponColour("glow",Item)
+	self.InputGlowColourH.text = Colour.hue
+	self.InputGlowColourS.text = Colour.saturation
+	self.InputGlowColourV.text = Colour.value
+	self.ApplyGlowColour.caption = "Apply"
 
 	return
 end
 
 function Win:UpdateFields_Targeting(Item)
 
+	if(Item == nil or not Item.automatic)
+	then
+		self.LabelTargeting.caption = "Off"
+		self.LabelTargeting.color = ColorHSV(12,1,1)
+	else
+		self.LabelTargeting.caption = "On"
+		self.LabelTargeting.color = ColorHSV(55,1,1)
+	end
+
 	return
 end
 
 function Win:UpdateFields_Energy(Item)
 
+	if(Item == nil)
+	then
+		self.InputEnergy.text = ""
+		return
+	end
+
+	self.InputEnergy.text = Item.energyIncreasePerSecond
 	return
 end
 
 function Win:UpdateFields_Heat(Item)
 
+	if(Item == nil)
+	then
+		self.InputHeat.text = ""
+		return
+	end
+
+	self.InputHeat.text = Item.heatPerShot
 	return
 end
 
 function Win:UpdateFields_Tracking(Item)
 
+	if(Item == nil)
+	then
+		self.InputTracking.text = ""
+		return
+	end
+
+	self.InputTracking.text = Item.turningSpeed
 	return
 end
 
 function Win:UpdateFields_Range(Item)
 
+	if(Item == nil)
+	then
+		self.InputRange.text = ""
+		return
+	end
+
+	self.InputRange.text = GetWeaponRange(Item)
 	return
 end
 
 function Win:UpdateFields_Rate(Item)
 
+	if(Item == nil)
+	then
+		self.InputRate.text = ""
+		return
+	end
+
+	self.InputRate.text = GetWeaponRate(Item)
 	return
 end
 
