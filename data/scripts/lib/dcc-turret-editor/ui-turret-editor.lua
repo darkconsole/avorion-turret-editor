@@ -150,6 +150,8 @@ function ReplaceInventoryItem(Index,Item,Count)
 		return
 	end
 
+	print("replacing item "..Index)
+
 	local Armory = Player():getInventory()
 	Armory:removeAll(Index)
 	Armory:addAt(Item,Index,Count)
@@ -302,15 +304,15 @@ function Win:BuildUI()
 
 	self.InputProjColourH = self.Window:createTextBox(
 		FramedRect(TRPane,4,1,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedProjColour"
 	)
 	self.InputProjColourS = self.Window:createTextBox(
 		FramedRect(TRPane,5,1,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedProjColour"
 	)
 	self.InputProjColourV = self.Window:createTextBox(
 		FramedRect(TRPane,6,1,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedProjColour"
 	)
 
 	self.ApplyProjColour = self.Window:createButton(
@@ -332,15 +334,15 @@ function Win:BuildUI()
 
 	self.InputCoreColourH = self.Window:createTextBox(
 		FramedRect(TRPane,4,2,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedCoreColour"
 	)
 	self.InputCoreColourS = self.Window:createTextBox(
 		FramedRect(TRPane,5,2,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedCoreColour"
 	)
 	self.InputCoreColourV = self.Window:createTextBox(
 		FramedRect(TRPane,6,2,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedCoreColour"
 	)
 
 	self.ApplyCoreColour = self.Window:createButton(
@@ -362,15 +364,15 @@ function Win:BuildUI()
 
 	self.InputGlowColourH = self.Window:createTextBox(
 		FramedRect(TRPane,4,3,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedGlowColour"
 	)
 	self.InputGlowColourS = self.Window:createTextBox(
 		FramedRect(TRPane,5,3,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedGlowColour"
 	)
 	self.InputGlowColourV = self.Window:createTextBox(
 		FramedRect(TRPane,6,3,(Cols*3),Rows),
-		"Win_OnTextBoxChanged"
+		"Win_OnChangedGlowColour"
 	)
 
 	self.ApplyGlowColour = self.Window:createButton(
@@ -515,8 +517,11 @@ end
 function Win:GetCurrentItemIndex()
 
 	local Item = self.Item:getItem(ivec2(0,0))
+
 	if(Item == nil)
 	then return nil end
+
+	print("weapon " .. Item.item.weaponName)
 
 	return Item.uvalue
 end
@@ -537,7 +542,7 @@ end
 function Win:GetCurrentItem()
 -- get the turret we are trying to edit.
 
-	return self.Inv:getItem(ivec2(0,0))
+	return self.Item:getItem(ivec2(0,0))
 end
 
 function Win:GetCurrentItems()
@@ -555,11 +560,14 @@ end
 
 function Win:UpdateItemReal(Item)
 
+	print("update item real " .. Index)
+
 	ReplaceInventoryItem(
 		self:GetCurrentItemIndex(),
 		Item,
 		self:GetCurrentItemCount()
 	)
+
 	return
 end
 
@@ -584,6 +592,10 @@ function Win:UpdateFields()
 	self:UpdateFields_Tracking(Item)
 	self:UpdateFields_Range(Item)
 	self:UpdateFields_Rate(Item)
+
+	self:OnChangedProjColour()
+	self:OnChangedCoreColour()
+	self:OnChangedGlowColour()
 
 	return
 end
@@ -733,6 +745,8 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	print("From/To: " .. FromIndex .. " -> " .. ToIndex)
 	print("")
 
+	print("selected " .. Item.uvalue)
+
 	self.Item:clear()
 	self.Item:add(Item)
 	self:UpdateFields()
@@ -858,6 +872,104 @@ function Win:OnClickedTargeting()
 	return
 end
 
+function Win:OnClickedEnergy()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Energy Buildup")
+	local Item, Real = self:GetCurrentItems()
+
+	Real.energyIncreasePerSecond = round(tonumber(self.InputEnergy.text),2)
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnClickedHeat()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Heat Buildup")
+	local Item, Real = self:GetCurrentItems()
+
+	Real.heatPerShot = round(tonumber(self.InputHeat.text),2)
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnClickedTracking()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Tracking Speed")
+	local Item, Real = self:GetCurrentItems()
+
+	Real.turningSpeed = round(tonumber(self.InputTracking.text),2)
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnClickedRange()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Range")
+	local Item, Real = self:GetCurrentItems()
+
+	SetWeaponRange(Real,round(tonumber(self.InputRange.text),2))
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnClickedRate()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Fire Rate")
+	local Item, Real = self:GetCurrentItems()
+
+	SetWeaponRate(Real,round(tonumber(self.InputRate.text),2))
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnChangedProjColour()
+
+	self.LabelProjColour.color = ColorHSV(
+		round(tonumber(self.InputProjColourH.text) or 0),
+		round(tonumber(self.InputProjColourS.text) or 1),
+		round(tonumber(self.InputProjColourV.text) or 1)
+	)
+
+	return
+end
+
+function Win:OnChangedCoreColour()
+
+	self.LabelCoreColour.color = ColorHSV(
+		round(tonumber(self.InputCoreColourH.text) or 1),
+		round(tonumber(self.InputCoreColourS.text) or 1),
+		round(tonumber(self.InputCoreColourV.text) or 1)
+	)
+
+	return
+end
+
+function Win:OnChangedGlowColour()
+
+	self.LabelGlowColour.color = ColorHSV(
+		round(tonumber(self.InputGlowColourH.text) or 1),
+		round(tonumber(self.InputGlowColourS.text) or 1),
+		round(tonumber(self.InputGlowColourV.text) or 1)
+	)
+
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function Win_Update(...)
@@ -876,11 +988,14 @@ function Win_OnClickedProjColour(...) Win:OnClickedProjColour(...) end
 function Win_OnClickedCoreColour(...) Win:OnClickedCoreColour(...) end
 function Win_OnClickedGlowColour(...) Win:OnClickedGlowColour(...) end
 function Win_OnClickedTargeting(...) Win:OnClickedTargeting(...) end
-function Win_OnClickedEnergy(...) end
-function Win_OnClickedHeat(...) end
-function Win_OnClickedTracking(...) end
-function Win_OnClickedRange(...) end
-function Win_OnClickedRate(...) end
+function Win_OnClickedEnergy(...) Win:OnClickedEnergy(...) end
+function Win_OnClickedHeat(...) Win:OnClickedHeat(...) end
+function Win_OnClickedTracking(...) Win:OnClickedTracking(...) end
+function Win_OnClickedRange(...) Win:OnClickedRange(...) end
+function Win_OnClickedRate(...) Win:OnClickedRate(...) end
+function Win_OnChangedProjColour(...) Win:OnChangedProjColour(...) end
+function Win_OnChangedCoreColour(...) Win:OnChangedCoreColour(...) end
+function Win_OnChangedGlowColour(...) Win:OnChangedGlowColour(...) end
 
 function Win_OnTextBoxChanged(...) end
 function Win_OnButtonClicked(...) end
@@ -903,6 +1018,11 @@ function onCloseWindow()
 end
 
 function onShowWindow()
+	print("onShowWindow")
+
+	Win.Item:clear()
+	Win.Inv:clear()
+
 	Win:PopulateInventory()
 	return
 end
