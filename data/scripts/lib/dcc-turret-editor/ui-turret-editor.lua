@@ -290,7 +290,7 @@ function Win:BuildUI()
 
 	local Frame = self.Window:createFrame(TRPane.rect)
 	local Element
-	local Rows = 8
+	local Rows = 7
 	local Cols = 3
 
 	-- projectile colour
@@ -471,12 +471,12 @@ function Win:BuildUI()
 	-- size
 
 	self.InputSize = self.Window:createTextBox(
-		FramedRect(TRPane,1,8,Cols,Rows),
+		FramedRect(TRPane,1,7,Cols,Rows),
 		"Win_OnTextBoxChanged"
 	)
 
 	self.ApplyRate = self.Window:createButton(
-		FramedRate(TRPane,2,8,Cols,Rows),
+		FramedRect(TRPane,2,7,Cols,Rows),
 		"Size",
 		"Win_OnClickedSize"
 	)
@@ -576,8 +576,6 @@ end
 
 function Win:UpdateItemReal(Item)
 
-	print("update item real " .. Index)
-
 	ReplaceInventoryItem(
 		self:GetCurrentItemIndex(),
 		Item,
@@ -590,8 +588,8 @@ end
 function Win:UpdateItems(Item,Real)
 	Item.item = Real
 
-	self:UpdateItem(Item)
 	self:UpdateItemReal(Real)
+	self:UpdateItem(Item)
 	return
 end
 
@@ -1035,6 +1033,7 @@ function Win_OnClickedHeat(...) Win:OnClickedHeat(...) end
 function Win_OnClickedTracking(...) Win:OnClickedTracking(...) end
 function Win_OnClickedRange(...) Win:OnClickedRange(...) end
 function Win_OnClickedRate(...) Win:OnClickedRate(...) end
+function Win_OnClickedSize(...) Win:OnClickedSize(...) end
 function Win_OnChangedProjColour(...) Win:OnChangedProjColour(...) end
 function Win_OnChangedCoreColour(...) Win:OnChangedCoreColour(...) end
 function Win_OnChangedGlowColour(...) Win:OnChangedGlowColour(...) end
