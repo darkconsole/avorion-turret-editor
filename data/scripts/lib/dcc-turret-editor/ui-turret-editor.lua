@@ -3,6 +3,8 @@ package.path = package.path
 .. ";data/scripts/sector/?.lua"
 .. ";data/scripts/?.lua"
 
+-- vscode-fold=1
+
 require ("galaxy")
 require ("utility")
 require ("faction")
@@ -11,8 +13,6 @@ require ("randomext")
 require ("stringutility")
 
 SellableII = require("sellableinventoryitem")
-
-
 
 --------------------------------------------------------------------------------
 
@@ -206,6 +206,9 @@ local Win = {
 	LabelTargeting = nil,
 	ToggleTargeting = nil,
 
+	InputSize = nil,
+	ApplySize = nil,
+
 	UI = nil,
 	Res = nil,
 	Size = nil
@@ -287,7 +290,7 @@ function Win:BuildUI()
 
 	local Frame = self.Window:createFrame(TRPane.rect)
 	local Element
-	local Rows = 6
+	local Rows = 8
 	local Cols = 3
 
 	-- projectile colour
@@ -465,6 +468,19 @@ function Win:BuildUI()
 		"Win_OnClickedRate"
 	)
 
+	-- size
+
+	self.InputSize = self.Window:createTextBox(
+		FramedRect(TRPane,1,8,Cols,Rows),
+		"Win_OnTextBoxChanged"
+	)
+
+	self.ApplyRate = self.Window:createButton(
+		FramedRate(TRPane,2,8,Cols,Rows),
+		"Size",
+		"Win_OnClickedSize"
+	)
+
 	return
 end
 
@@ -592,6 +608,7 @@ function Win:UpdateFields()
 	self:UpdateFields_Tracking(Item)
 	self:UpdateFields_Range(Item)
 	self:UpdateFields_Rate(Item)
+	self:UpdateFields_Size(Item)
 
 	self:OnChangedProjColour()
 	self:OnChangedCoreColour()
@@ -731,6 +748,18 @@ function Win:UpdateFields_Rate(Item)
 	end
 
 	self.InputRate.text = GetWeaponRate(Item)
+	return
+end
+
+function Win:UpdateFields_Size(Item)
+
+	if(Item == nil)
+	then
+		self.InputSize.text = ""
+		return
+	end
+
+	self.InputSize.text = Item.size
 	return
 end
 
@@ -933,6 +962,19 @@ function Win:OnClickedRate()
 	local Item, Real = self:GetCurrentItems()
 
 	SetWeaponRate(Real,round(tonumber(self.InputRate.text),2))
+
+	self:UpdateItems(Item,Real)
+end
+
+function Win:OnClickedSize()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Turret Size")
+	local Item, Real = self:GetCurrentItems()
+
+	Real.size = round(tonumber(self.InputSize.text),2)
 
 	self:UpdateItems(Item,Real)
 end
