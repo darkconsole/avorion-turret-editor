@@ -140,6 +140,22 @@ function SetWeaponRate(Item,Val)
 	return
 end
 
+function GetWeaponCrew(Item)
+-- get required crew. if its a civil cannon it returns the miner count and if
+-- an offensive weapon it returns the gunner count.
+
+
+
+	return
+end
+
+function SetWeaponCrew(Item,Val)
+-- set required crew. if a civil cannon it sets the miner count and if an
+-- offensive weapon it sets the gunner count.
+
+	return
+end
+
 function ReplaceInventoryItem(Index,Item,Count)
 -- replace the inventory item at the specified index with the specified thing.
 -- this hot swaps the thing with the updated version.
@@ -208,6 +224,9 @@ local Win = {
 
 	InputSize = nil,
 	ApplySize = nil,
+
+	InputCrew = nil,
+	ApplyCrew = nil,
 
 	UI = nil,
 	Res = nil,
@@ -530,7 +549,11 @@ function Win:PopulateInventory()
 	return
 end
 
+--------------------------------------------------------------------------------
+
 function Win:GetCurrentItemIndex()
+-- get the index of the real item that this mock item is pointing to. this
+-- returns the value we stored in the uvalue property.
 
 	local Item = self.Item:getItem(ivec2(0,0))
 
@@ -543,12 +566,13 @@ function Win:GetCurrentItemIndex()
 end
 
 function Win:GetCurrentItemCount()
+-- get the amount in the stack we are currently editing.
 
 	return self.Item:getItem(ivec2(0,0)).amount
 end
 
 function Win:GetCurrentItemReal()
--- get the turret we are trying to edit.
+-- get the actual turret we are editing.
 
 	return Player():getInventory():find(
 		 self:GetCurrentItemIndex()
@@ -556,15 +580,18 @@ function Win:GetCurrentItemReal()
 end
 
 function Win:GetCurrentItem()
--- get the turret we are trying to edit.
+-- get the mock turret we are editing.
 
 	return self.Item:getItem(ivec2(0,0))
 end
 
 function Win:GetCurrentItems()
+-- get the currently selected item and the real item it is a mock for.
 
 	return self:GetCurrentItem(), self:GetCurrentItemReal()
 end
+
+--------------------------------------------------------------------------------
 
 function Win:UpdateItem(Item)
 
@@ -592,6 +619,8 @@ function Win:UpdateItems(Item,Real)
 	self:UpdateItem(Item)
 	return
 end
+
+--------------------------------------------------------------------------------
 
 function Win:UpdateFields()
 
@@ -975,6 +1004,21 @@ function Win:OnClickedSize()
 	Real.size = round(tonumber(self.InputSize.text),2)
 
 	self:UpdateItems(Item,Real)
+	return
+end
+
+function Win:OnClickedCrew()
+
+	if(not self:GetCurrentItemIndex())
+	then return end
+
+	print("Set Crew")
+	local Item, Real = self:GetCurrentItems()
+
+	--
+
+	self:UpdateItems(Item,Real)
+	return
 end
 
 function Win:OnChangedProjColour()
@@ -1034,6 +1078,7 @@ function Win_OnClickedTracking(...) Win:OnClickedTracking(...) end
 function Win_OnClickedRange(...) Win:OnClickedRange(...) end
 function Win_OnClickedRate(...) Win:OnClickedRate(...) end
 function Win_OnClickedSize(...) Win:OnClickedSize(...) end
+function Win_OnClickedCrew(...) Win:OnClickedCrew(...) end
 function Win_OnChangedProjColour(...) Win:OnChangedProjColour(...) end
 function Win_OnChangedCoreColour(...) Win:OnChangedCoreColour(...) end
 function Win_OnChangedGlowColour(...) Win:OnChangedGlowColour(...) end
@@ -1050,16 +1095,21 @@ function interactionPossible(Player)
 end
 
 function getIcon(Seed, Rarity)
+
 	return "data/textures/icons/cash.png"
 end
 
+--------------------------------------------------------------------------------
+
 function onCloseWindow()
+-- do something i dunno maybe when it is closed.
+
 	print("onCloseWindow")
 	return
 end
 
 function onShowWindow()
-	print("onShowWindow")
+-- reset the dialog when it is opened.
 
 	Win.Item:clear()
 	Win.Inv:clear()
@@ -1067,6 +1117,8 @@ function onShowWindow()
 	Win:PopulateInventory()
 	return
 end
+
+--------------------------------------------------------------------------------
 
 function initialize()
 -- script bootstrapping.
