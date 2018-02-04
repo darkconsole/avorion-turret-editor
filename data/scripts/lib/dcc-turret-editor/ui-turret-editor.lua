@@ -169,6 +169,11 @@ function ReplaceInventoryItem(Index,Item,Count)
 	print("replacing item "..Index)
 
 	local Armory = Player():getInventory()
+	local Old = Armory:find(Index)
+
+	Item.favorite = Old.favorite
+	Item.trash = Old.trash
+
 	Armory:removeAll(Index)
 	Armory:addAt(Item,Index,Count)
 
@@ -304,6 +309,7 @@ function Win:BuildUI()
 
 	self.Inv = self.Window:createSelection(Pane.bottom,12)
 	self.Inv.onClickedFunction = "Win_OnInvClicked"
+
 
 	-- create the list of things you can do.
 
@@ -519,6 +525,8 @@ function Win:PopulateInventory()
 		if(Thing.item.itemType == InventoryItemType.Turret or Thing.item.itemType == InventoryItemType.TurretTemplate)
 		then
 			local Item = SellableII(Thing.item,Iter,Me)
+			Item.favorite = Thing.item.favorite
+			Item.trash = Thing.item.trash
 			table.insert(ItemList,Item)
 		end
 	end
@@ -529,7 +537,7 @@ function Win:PopulateInventory()
 	-- now create items in our dialog to represent the inventory items.
 
 	for Iter, Thing in pairs(ItemList) do
-		local Item = SelectionItem()
+		local Item = InventorySelectionItem()
 
 		Item.item = Thing.item
 

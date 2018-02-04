@@ -7,13 +7,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 define('ProjectRoot','..');
-define('StockDir', '/avorion-0.11.0.7844/data/scripts');
-define('ModDir', '/avorion-turret-upgrade/data/scripts');
-define('PatchDir', '/avorion-turret-upgrade/patches');
+define('StockDir', '/avorion-stock/data/scripts');
+define('ModDir', '/avorion-turret-editor/data/scripts');
+define('PatchDir', '/avorion-turret-editor/patches');
 
 define('Files',[
-	'/commands/turretupgrade.lua'               => '/patch-commands-turretupgrade.diff',
-	'/lib/dcc-turret-upgrade/cmd-inventory.lua' => '/patch-lib-dcc-turrent-upgrade-cmd-inventory.diff'
+	'/lib/dcc-turret-editor/cmd-inventory.lua'    => '/patch-lib-dcc-turret-editor-cmd-inventory.diff',
+	'/lib/dcc-turret-editor/ui-turret-editor.lua' => '/patch-lib-dcc-turret-editor-ui-turret-editor.diff',
+	'/commands/tedit.lua'                         => '/patch-commmands-tedit.diff'
 ]);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +42,7 @@ $Command;
 
 foreach(Files as $File => $Patch) {
 	$Command = sprintf(
-		'diff -urN %s %s > %s',
+		'diff -urN --strip-trailing-cr %s %s > %s',
 		escapeshellarg((ProjectRoot.StockDir.$File)),
 		escapeshellarg((ProjectRoot.ModDir.$File)),
 		escapeshellarg(Pathify(ProjectRoot.PatchDir.$Patch))
