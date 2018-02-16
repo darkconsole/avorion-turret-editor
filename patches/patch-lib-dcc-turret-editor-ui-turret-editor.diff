@@ -1,6 +1,6 @@
 --- ../avorion-stock/data/scripts/lib/dcc-turret-editor/ui-turret-editor.lua	1969-12-31 18:00:00.000000000 -0600
-+++ ../avorion-turret-editor/data/scripts/lib/dcc-turret-editor/ui-turret-editor.lua	2017-04-03 20:33:07.050347900 -0500
-@@ -0,0 +1,1146 @@
++++ ../avorion-turret-editor/data/scripts/lib/dcc-turret-editor/ui-turret-editor.lua	2018-02-15 12:17:40.350848200 -0600
+@@ -0,0 +1,1161 @@
 +package.path = package.path
 +.. ";data/scripts/lib/?.lua"
 +.. ";data/scripts/sector/?.lua"
@@ -172,6 +172,11 @@
 +	print("replacing item "..Index)
 +
 +	local Armory = Player():getInventory()
++	local Old = Armory:find(Index)
++
++	Item.favorite = Old.favorite
++	Item.trash = Old.trash
++
 +	Armory:removeAll(Index)
 +	Armory:addAt(Item,Index,Count)
 +
@@ -307,6 +312,7 @@
 +
 +	self.Inv = self.Window:createSelection(Pane.bottom,12)
 +	self.Inv.onClickedFunction = "Win_OnInvClicked"
++
 +
 +	-- create the list of things you can do.
 +
@@ -522,17 +528,26 @@
 +		if(Thing.item.itemType == InventoryItemType.Turret or Thing.item.itemType == InventoryItemType.TurretTemplate)
 +		then
 +			local Item = SellableII(Thing.item,Iter,Me)
++			Item.favorite = Thing.item.favorite
++			Item.trash = Thing.item.trash
 +			table.insert(ItemList,Item)
 +		end
 +	end
 +
-+	-- @todo
-+	-- sorting
++	-- sort starred items to the front of the list.
++
++	table.sort(ItemList,function(a,b)
++		if(a.item.favorite and not b.item.favorite) then
++			return true
++		else
++			return false
++		end
++	end)
 +
 +	-- now create items in our dialog to represent the inventory items.
 +
 +	for Iter, Thing in pairs(ItemList) do
-+		local Item = SelectionItem()
++		local Item = InventorySelectionItem()
 +
 +		Item.item = Thing.item
 +
