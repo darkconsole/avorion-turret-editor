@@ -531,8 +531,15 @@ function Win:PopulateInventory()
 		end
 	end
 
-	-- @todo
-	-- sorting
+	-- sort starred items to the front of the list.
+
+	table.sort(ItemList,function(a,b)
+		if(a.item.favorite and not b.item.favorite) then
+			return true
+		else
+			return false
+		end
+	end)
 
 	-- now create items in our dialog to represent the inventory items.
 
