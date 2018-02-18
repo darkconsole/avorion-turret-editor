@@ -7,14 +7,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 define('ProjectRoot','..');
-define('StockDir', '/avorion-stock/data/scripts');
-define('ModDir', '/avorion-turret-editor/data/scripts');
+define('StockDir', '/avorion-stock');
+define('ModDir', '/avorion-turret-editor');
 define('PatchDir', '/avorion-turret-editor/patches');
 
 define('Files',[
-	'/lib/dcc-turret-editor/cmd-inventory.lua'    => '/patch-lib-dcc-turret-editor-cmd-inventory.diff',
-	'/lib/dcc-turret-editor/ui-turret-editor.lua' => '/patch-lib-dcc-turret-editor-ui-turret-editor.diff',
-	'/commands/tedit.lua'                         => '/patch-commmands-tedit.diff'
+	'/data/scripts/lib/dcc-turret-editor/cmd-inventory.lua'    => '/patch-lib-dcc-turret-editor-cmd-inventory.diff',
+	'/data/scripts/lib/dcc-turret-editor/ui-turret-editor.lua' => '/patch-lib-dcc-turret-editor-ui-turret-editor.diff',
+	'/data/scripts/commands/tedit.lua'                         => '/patch-commmands-tedit.diff',
+
+	'/data/scripts/commands/tmod.lua'                   => '/patch-commands-tmod.diff',
+	'/mods/DccTurretEditor/TurretLib.lua'               => '/Patch-Mods-DccTurretEditor-TurretLib.lua',
+	'/mods/DccTurretEditor/Interface/TurretModding.lua' => '/Patch-Mods-DccTurretEditor-Interface-TurrentModding.diff'
 ]);
 
 ////////////////////////////////////////////////////////////////////////////////
