@@ -12,13 +12,11 @@ define('ModDir', '/avorion-turret-editor');
 define('PatchDir', '/avorion-turret-editor/patches');
 
 define('Files',[
-	'/data/scripts/lib/dcc-turret-editor/cmd-inventory.lua'    => '/patch-lib-dcc-turret-editor-cmd-inventory.diff',
-	'/data/scripts/lib/dcc-turret-editor/ui-turret-editor.lua' => '/patch-lib-dcc-turret-editor-ui-turret-editor.diff',
-	'/data/scripts/commands/tedit.lua'                         => '/patch-commmands-tedit.diff',
-
 	'/data/scripts/commands/tmod.lua'                   => '/patch-commands-tmod.diff',
 	'/mods/DccTurretEditor/TurretLib.lua'               => '/Patch-Mods-DccTurretEditor-TurretLib.lua',
-	'/mods/DccTurretEditor/Interface/TurretModding.lua' => '/Patch-Mods-DccTurretEditor-Interface-TurrentModding.diff'
+	'/mods/DccTurretEditor/Commands/TurretModding.lua'  => '/Patch-Mods-DccTurretEditor-Commands-TurrentModding.diff',
+	'/mods/DccTurretEditor/Interface/TurretModding.lua' => '/Patch-Mods-DccTurretEditor-Interface-TurrentModding.diff',
+	'/mods/DccTurretEditor/Textures/Icon.png'           => '/Patch-Mods-DccTurretEditor-Textures-Icon.diff'
 ]);
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,17 +1,17 @@
 --- ../avorion-stock/data/scripts/commands/tmod.lua	1969-12-31 18:00:00.000000000 -0600
-+++ ../avorion-turret-editor/data/scripts/commands/tmod.lua	2018-02-17 16:29:21.892295200 -0600
++++ ../avorion-turret-editor/data/scripts/commands/tmod.lua	2018-02-17 17:47:21.731899800 -0600
 @@ -0,0 +1,15 @@
 +
 +function execute(PlayerID, Command, Action, ...)
 +
-+	if(onServer())
-+	then
-+		Entity(Player(PlayerID).craftIndex)
-+		:removeScript("mods/DccTurretEditor/Interface/TurretModding")
++	if(not onServer())
++	then return end
 +
-+		Entity(Player(PlayerID).craftIndex)
-+		:addScriptOnce("mods/DccTurretEditor/Interface/TurretModding")
-+	end
++	Player(PlayerID)
++	:removeScript("mods/DccTurretEditor/Commands/TurretModding")
++
++	Player(PlayerID)
++	:addScriptOnce("mods/DccTurretEditor/Commands/TurretModding",Action,...)
 +
 +	return 0, "", ""
 +end

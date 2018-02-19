@@ -5,20 +5,63 @@ package.path = package.path
 
 -- vscode-fold=1
 
-require ("galaxy")
-require ("utility")
-require ("faction")
-require ("player")
-require ("randomext")
-require ("stringutility")
+require("galaxy")
+require("utility")
+require("faction")
+require("player")
+require("randomext")
+require("stringutility")
 
-SellableInventoryItem = require("sellableinventoryitem")
+local SellableInventoryItem = require("sellableinventoryitem")
+local TurretLib = require("mods.DccTurretEditor.TurretLib")
 
-TurretLib = require("mods.DccTurretEditor.TurretLib")
+local Config = {
+
+	RarityMult = 0.1669,
+	-- how much the rarities get weighted. the default value of 0.1996 means
+	-- scrapping 5 white turrets will buff 0.7% while scrapping 5 legendary
+	-- turrets will buff 5%
+
+	CostColour = 2500,
+	CostTargeting = 10000,
+
+	Debug = true
+}
 
 --------------------------------------------------------------------------------
 
 -- utility functions.
+
+function PrintDebug(TheMessage)
+-- show debugging messages in the console.
+
+	if(Config.Debug) then
+		print("[DccTurretEditor] " .. TheMessage)
+	end
+
+	return
+end
+
+function PrintError(TheMessage)
+-- show error messages to the user.
+
+	displayChatMessage(TheMessage,"DccTurretEditor",1)
+	return
+end
+
+function PrintInfo(TheMessage)
+-- show info messages to the user.
+
+	displayChatMessage(TheMessage,"DccTurretEditor",3)
+	return
+end
+
+function PrintWarning(TheMessage)
+-- show info messages to the user.
+
+	displayChatMessage(TheMessage,"DccTurretEditor",2)
+	return
+end
 
 function FramedRect(Container,X,Y,Cols,Rows,Padding)
 -- for this trained rekt. give it a container you want to grid things out into
@@ -45,6 +88,9 @@ end
 
 local Win = {
 	Title = "Engineering: Weapons Bay",
+	UI = nil,
+	Res = nil,
+	Size = nil,
 
 	-- click selection id.
 	-- the ui api really was not expecting anyone to do more than two
@@ -65,62 +111,14 @@ local Win = {
 
 	-- the player's inventory.
 	Inv      = nil,
-	InvLabel = nil,
+	InvLabel = nil
 
-	-- upgrade heat sinks
-	BtnHeatSinks = nil,
-
-	LabelProjColour = nil,
-	InputProjColourH = nil,
-	InputProjColourS = nil,
-	InputProjColourV = nil,
-	ApplyProjColour = nil,
-
-	LabelCoreColour = nil,
-	InputCoreColourH = nil,
-	InputCoreColourS = nil,
-	InputCoreColourV = nil,
-	ApplyCoreColour = nil,
-
-	LabelGlowColour = nil,
-	InputGlowColourH = nil,
-	InputGlowColourS = nil,
-	InputGlowColourV = nil,
-	ApplyGlowColour = nil,
-
-	InputRange = nil,
-	ApplyRange = nil,
-
-	InputRate = nil,
-	ApplyRate = nil,
-
-	InputHeat = nil,
-	ApplyHeat = nil,
-
-	InputEnergy = nil,
-	ApplyEnergy = nil,
-
-	InputTracking = nil,
-	ApplyTracking = nil,
-
-	LabelTargeting = nil,
-	ToggleTargeting = nil,
-
-	InputSize = nil,
-	ApplySize = nil,
-
-	InputCrew = nil,
-	ApplyCrew = nil,
-
-	UI = nil,
-	Res = nil,
-	Size = nil
 }
 
 function Win:OnInit()
 
 	self.Res = getResolution()
-	self.Size = vec2(900,600)
+	self.Size = vec2(900,700)
 	self.UI = ScriptUI()
 
 	self.Window = self.UI:createWindow(Rect(
@@ -134,7 +132,7 @@ function Win:OnInit()
 	self.UI:registerWindow(self.Window,self.Title)
 
 	self:BuildUI()
-	self:PopulateInventory()
+	self:UpdateFields()
 	return
 end
 
@@ -142,7 +140,7 @@ function Win:BuildUI()
 
 	local Pane = UIHorizontalSplitter(
 		Rect(self.Window.size),
-		10, 10, 0.6
+		10, 10, 0.65
 	)
 
 	local BPane = UIHorizontalSplitter(
@@ -180,8 +178,8 @@ function Win:BuildUI()
 	self.Item = self.Window:createSelection(Rect(0,0,128,128),1)
 	self.Item.dropIntoEnabled = 1
 	self.Item.entriesSelectable = 0
-	self.Item.onClickedFunction = "Win_OnItemClicked"
-	self.Item.onReceivedFunction = "Win_OnItemAdded"
+	self.Item.onClickedFunction = "TurretModdingUI_OnItemClicked"
+	self.Item.onReceivedFunction = "TurretModdingUI_OnItemAdded"
 	TLPane:placeElementCenter(self.Item)
 
 	self.ItemLabel = self.Window:createLabel(
@@ -198,8 +196,8 @@ function Win:BuildUI()
 	self.Bin = self.Window:createSelection(Rect(0,0,500,104),5)
 	self.Bin.dropIntoEnabled = 1
 	self.Bin.entriesSelectable = 0
-	self.Bin.onClickedFunction = "Win_OnBinClicked"
-	self.Bin.onReceivedFunction = "Win_OnBinAdded"
+	self.Bin.onClickedFunction = "TurretModdingUI_OnBinClicked"
+	self.Bin.onReceivedFunction = "TurretModdingUI_OnBinAdded"
 	TRPane:placeElementCenter(self.Bin)
 
 	self.BinLabel = self.Window:createLabel(
@@ -216,13 +214,13 @@ function Win:BuildUI()
 	self.Inv = self.Window:createSelection(Pane.bottom,12)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
-	self.Inv.onClickedFunction = "Win_OnInvClicked"
-	self.Inv.onReceivedFunction = "Win_OnInvAdded"
+	self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
+	self.Inv.onReceivedFunction = "TurretModdingUI_OnInvAdded"
 
 	-- buttons don't place well so we alter their rects after creating.
 
 	self.UpgradeFrame = self.Window:createFrame(BPane.bottom)
-	local Rows = 4
+	local Rows = 7
 	local Cols = 4
 
 	local Hint, HintLine
@@ -232,11 +230,11 @@ function Win:BuildUI()
 	self.BtnHeat = self.Window:createButton(
 		Rect(),
 		"Heat Sinks",
-		"Win_OnClickedBtnHeat"
+		"TurretModdingUI_OnClickedBtnHeat"
 	)
-	self.BtnHeat.textSize = FontSize2
+	self.BtnHeat.textSize = FontSize3
 	self.BtnHeat.rect = FramedRect(self.UpgradeFrame,1,1,Cols,Rows)
-	self.BtnHeat.tooltip = "Reduce the heat generated and cooldown rate of this turret."
+	self.BtnHeat.tooltip = "Reduce the heat generated, increase cooldown rate."
 
 	self.LblHeat = self.Window:createLabel(
 		Rect(),
@@ -251,13 +249,11 @@ function Win:BuildUI()
 	self.BtnBaseEnergy = self.Window:createButton(
 		Rect(),
 		"Capacitors",
-		"Win_OnClickedBtnBaseEnergy"
+		"TurretModdingUI_OnClickedBtnBaseEnergy"
 	)
-	self.BtnBaseEnergy.textSize = FontSize2
+	self.BtnBaseEnergy.textSize = FontSize3
 	self.BtnBaseEnergy.rect = FramedRect(self.UpgradeFrame,2,1,Cols,Rows)
-	self.BtnBaseEnergy.tooltip = "Reduce the base energy demand for this turret."
-
-	--------
+	self.BtnBaseEnergy.tooltip = "Reduce the base energy demand."
 
 	self.LblBaseEnergy = self.Window:createLabel(
 		Rect(),
@@ -272,13 +268,11 @@ function Win:BuildUI()
 	self.BtnAccumEnergy = self.Window:createButton(
 		Rect(),
 		"Transformers",
-		"Win_OnClickedBtnAccumEnergy"
+		"TurretModdingUI_OnClickedBtnAccumEnergy"
 	)
-	self.BtnAccumEnergy.textSize = FontSize2
+	self.BtnAccumEnergy.textSize = FontSize3
 	self.BtnAccumEnergy.rect = FramedRect(self.UpgradeFrame,3,1,Cols,Rows)
-	self.BtnAccumEnergy.tooltip = "Reduce the increasing energy demand for this turret."
-
-	--------
+	self.BtnAccumEnergy.tooltip = "Reduce the climbing energy demand."
 
 	self.LblAccumEnergy = self.Window:createLabel(
 		Rect(),
@@ -290,37 +284,33 @@ function Win:BuildUI()
 
 	--------
 
-	self.BtnFireRate = self.Window:createButton(
+	self.BtnDamage = self.Window:createButton(
 		Rect(),
-		"Trigger Mech.",
-		"Win_OnClickedBtnFireRate"
+		"Ammunition / Power",
+		"TurretModdingUI_OnClickedBtnDamage"
 	)
-	self.BtnFireRate.textSize = FontSize2
-	self.BtnFireRate.rect = FramedRect(self.UpgradeFrame,4,1,Cols,Rows)
-	self.BtnFireRate.tooltip = "Increase the fire rate of this turret."
+	self.BtnDamage.textSize = FontSize3
+	self.BtnDamage.rect = FramedRect(self.UpgradeFrame,4,1,Cols,Rows)
+	self.BtnDamage.tooltip = "Increase the firepower."
 
-	--------
-
-	self.LblFireRate = self.Window:createLabel(
+	self.LblDamage = self.Window:createLabel(
 		Rect(),
-		"$FIRE_RATE",
+		"$DAMAGE",
 		FontSize3
 	)
-	self.LblFireRate.rect = FramedRect(self.UpgradeFrame,4,2,Cols,Rows)
-	self.LblFireRate.centered = true
+	self.LblDamage.rect = FramedRect(self.UpgradeFrame,4,2,Cols,Rows)
+	self.LblDamage.centered = true
 
 	--------
 
 	self.BtnSpeed = self.Window:createButton(
 		Rect(),
 		"Drive Motors",
-		"Win_OnClickedBtnSpeed"
+		"TurretModdingUI_OnClickedBtnSpeed"
 	)
-	self.BtnSpeed.textSize = FontSize2
+	self.BtnSpeed.textSize = FontSize3
 	self.BtnSpeed.rect = FramedRect(self.UpgradeFrame,1,3,Cols,Rows)
-	self.BtnSpeed.tooltip = "Increase the tracking speed of this turret."
-
-	--------
+	self.BtnSpeed.tooltip = "Increase the tracking speed."
 
 	self.LblSpeed = self.Window:createLabel(
 		Rect(),
@@ -335,13 +325,11 @@ function Win:BuildUI()
 	self.BtnRange = self.Window:createButton(
 		Rect(),
 		"Barrel / Lens",
-		"Win_OnClickedBtnRange"
+		"TurretModdingUI_OnClickedBtnRange"
 	)
-	self.BtnRange.textSize = FontSize2
+	self.BtnRange.textSize = FontSize3
 	self.BtnRange.rect = FramedRect(self.UpgradeFrame,2,3,Cols,Rows)
-	self.BtnRange.tooltip = "Increase the range at which this turret can hit."
-
-	--------
+	self.BtnRange.tooltip = "Increase the range."
 
 	self.LblRange = self.Window:createLabel(
 		Rect(),
@@ -353,33 +341,110 @@ function Win:BuildUI()
 
 	--------
 
-	self.BtnColor = self.Window:createButton(
+	self.BtnFireRate = self.Window:createButton(
 		Rect(),
-		"Colour (HSV)",
-		"Win_OnClickedBtnColor"
+		"Trigger Mechanism",
+		"TurretModdingUI_OnClickedBtnFireRate"
 	)
-	self.BtnColor.textSize = FontSize2
-	self.BtnColor.rect = FramedRect(self.UpgradeFrame,4,3,Cols,Rows)
-	self.BtnColor.tooltip = "Cost: $2500 (Does not consume turrets)"
+	self.BtnFireRate.textSize = FontSize3
+	self.BtnFireRate.rect = FramedRect(self.UpgradeFrame,3,3,Cols,Rows)
+	self.BtnFireRate.tooltip = "Increase the fire rate."
+
+	self.LblFireRate = self.Window:createLabel(
+		Rect(),
+		"$FIRE_RATE",
+		FontSize3
+	)
+	self.LblFireRate.rect = FramedRect(self.UpgradeFrame,3,4,Cols,Rows)
+	self.LblFireRate.centered = true
 
 	--------
 
+	self.BtnAccuracy = self.Window:createButton(
+		Rect(),
+		"Stabilizers",
+		"TurretModdingUI_OnClickedBtnAccuracy"
+	)
+	self.BtnAccuracy.textSize = FontSize3
+	self.BtnAccuracy.rect = FramedRect(self.UpgradeFrame,4,3,Cols,Rows)
+	self.BtnAccuracy.tooltip = "Increase the accuracy."
+
+	self.LblAccuracy = self.Window:createLabel(
+		Rect(),
+		"$ACCURACY",
+		FontSize3
+	)
+	self.LblAccuracy.rect = FramedRect(self.UpgradeFrame,4,4,Cols,Rows)
+	self.LblAccuracy.centered = true
+
+	--------
+
+	self.BtnEfficiency = self.Window:createButton(
+		Rect(),
+		"Phase Filters",
+		"TurretModdingUI_OnClickedBtnEfficiency"
+	)
+	self.BtnEfficiency.textSize = FontSize3
+	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,4,5,Cols,Rows)
+	self.BtnEfficiency.tooltip = "Increase the efficiency of mining and scav lasers."
+
+	self.LblEfficiency = self.Window:createLabel(
+		Rect(),
+		"$EFFICIENCY",
+		FontSize3
+	)
+	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,4,6,Cols,Rows)
+	self.LblEfficiency.centered = true
+
+	--------
+
+	self.BtnTargeting = self.Window:createButton(
+		Rect(),
+		("Targeting (Cr. " .. toReadableValue(Config.CostTargeting)  .. ")"),
+		"TurretModdingUI_OnClickedBtnTargeting"
+	)
+	self.BtnTargeting.textSize = FontSize3
+	self.BtnTargeting.rect = FramedRect(self.UpgradeFrame,1,6,Cols,Rows)
+	self.BtnTargeting.tooltip = "Toggle Automatic Targeting.\n(Does not consume turrets)"
+
+	self.LblTargeting = self.Window:createLabel(
+		Rect(),
+		"$TARGETING",
+		FontSize3
+	)
+	self.LblTargeting.rect = FramedRect(self.UpgradeFrame,1,7,Cols,Rows)
+	self.LblTargeting.centered = true
+
+	--------
+
+	self.BtnColour = self.Window:createButton(
+		Rect(),
+		"Colour HSV (Cr. " .. toReadableValue(Config.CostColour) .. ")",
+		"TurretModdingUI_OnClickedBtnColour"
+	)
+	self.BtnColour.textSize = FontSize3
+	self.BtnColour.rect = FramedRect(self.UpgradeFrame,2,6,Cols,Rows)
+	self.BtnColour.tooltip = "Set Weapon Color.\n(Does not consume turrets)"
+
 	self.BgColourFrame = self.Window:createFrame(BPane.bottom)
-	self.BgColourFrame.rect = FramedRect(self.UpgradeFrame,4,4,Cols,Rows)
+	self.BgColourFrame.rect = FramedRect(self.UpgradeFrame,2,7,Cols,Rows)
 
-	self.NumColourHue = self.Window:createSlider(Rect(),0,360,36,"","Win_OnUpdatePreviewColour")
-	self.NumColourHue.rect = FramedRect(self.UpgradeFrame,((4*3)-2),4,(Cols*3),Rows)
+	self.NumColourHue = self.Window:createSlider(Rect(),0,360,18,"","TurretModdingUI_OnUpdatePreviewColour")
+	self.NumColourHue.rect = FramedRect(self.UpgradeFrame,((2*3)-2),7,(Cols*3),Rows,10)
+	self.NumColourHue.showValue = false
 
-	self.NumColourSat = self.Window:createSlider(Rect(),0,1,10,"","Win_OnUpdatePreviewColour")
-	self.NumColourSat.rect = FramedRect(self.UpgradeFrame,((4*3)-1),4,(Cols*3),Rows)
+	self.NumColourSat = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
+	self.NumColourSat.rect = FramedRect(self.UpgradeFrame,((2*3)-1),7,(Cols*3),Rows,10)
+	self.NumColourSat.showValue = false
 
-	self.NumColourVal = self.Window:createSlider(Rect(),0,1,10,"","Win_OnUpdatePreviewColour")
-	self.NumColourVal.rect = FramedRect(self.UpgradeFrame,((4*3)-0),4,(Cols*3),Rows)
+	self.NumColourVal = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
+	self.NumColourVal.rect = FramedRect(self.UpgradeFrame,((2*3)-0),7,(Cols*3),Rows,10)
+	self.NumColourVal.showValue = false
 
 	return
 end
 
-function Win:PopulateInventory()
+function Win:PopulateInventory(NewCurrentIndex)
 -- most of the structure for this function was stolen from the vanilla research
 -- station script. it reads your inventory and creates a visible list of all
 -- the turrets you can drag drop.
@@ -423,7 +488,15 @@ function Win:PopulateInventory()
 			Item.item = Thing.item
 			Item.uvalue = Thing.index
 
-			self.Inv:add(Item)
+			if((NewCurrentIndex ~= nil) and (NewCurrentIndex == Item.uvalue)) then
+				-- handle when the server says an item was modded.
+				self.Item:clear()
+				self.Item:add(Item)
+				NewCurrentIndex = nil
+			else
+				-- populate the normal inventory.
+				self.Inv:add(Item)
+			end
 
 			Count = Count - 1
 		end
@@ -450,8 +523,6 @@ function Win:GetCurrentItemIndex()
 
 	if(Item == nil)
 	then return nil end
-
-	print("weapon " .. Item.item.weaponName)
 
 	return Item.uvalue
 end
@@ -482,6 +553,73 @@ function Win:GetCurrentItems()
 	return self:GetCurrentItem(), self:GetCurrentItemReal()
 end
 
+--------
+
+function Win:CalculateBinItems()
+-- calculate the bin items buff value.
+
+	local BuffValue = 0.0
+	local RarityValue = 0
+	local TechLevel = 0
+	local TechPer = 0
+	local Count = 0
+	local Mock, Real = self:GetCurrentItems()
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		-- count how many items we process.
+		Count = Count + 1
+
+		-- pool the tech level for average later.
+		TechLevel = TechLevel + Item.item.averageTech
+
+		-- calculate how muc the rarity is worth.
+		RarityValue = round((TurretLib:GetWeaponRarityValue(Item.item) * Config.RarityMult),3)
+
+		BuffValue = BuffValue + RarityValue
+
+		PrintDebug(
+			"Bin Item: " .. Item.item.weaponName ..
+			", Rarity: " .. TurretLib:GetWeaponRarityValue(Item.item) ..
+			", Tech: " .. Item.item.averageTech
+		)
+	end
+
+	if(Count == 0) then
+		return 0
+	end
+
+	TechLevel = TechLevel / Count
+	if(TechLevel > Real.averageTech) then
+		TechLevel = Real.averageTech
+	end
+
+	TechPer = (TechLevel / Real.averageTech)
+	BuffValue = (BuffValue * TechPer)
+
+	PrintDebug(
+		"TechLevel: ".. TechLevel .."/" .. Real.averageTech ..
+		", " .. (TechPer * 100) .. "%" ..
+		", BuffValue: " .. BuffValue
+	)
+
+	return BuffValue
+end
+
+function Win:ConsumeBinItems()
+-- get the items from the bin
+
+	local Armory = Player():getInventory()
+	local Real = nil
+	local Count = 0
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		self.Bin:remove(ItemVec)
+		TurretLib:ConsumePlayerInventory(Item.uvalue,1)
+	end
+
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function Win:UpdateItems(Mock,Real)
@@ -496,57 +634,177 @@ end
 
 --------------------------------------------------------------------------------
 
-function Win:UpdateFields(NewCurrentIndex)
+function Win:UpdateFields()
 
 	-- if we recieved a new index, then we need to scan the inventory widget
 	-- again to find where the object moved to when it was edited last time
 	-- and force that into the main box before we continue.
 
-	local Item, Real, BackgroundColour
+	local Item, Real = self:GetCurrentItems()
+	local BackgroundColour
+	local ColourDark = Color()
+	local ColourLight = Color()
 
-	if(NewCurrentIndex ~= nil)
-	then
-		for Iter, Thing in pairs(self.Inv:getItems()) do
-			if(NewCurrentIndex == Thing.uvalue)
-			then
-				self.Item:clear()
-				self.Item:add(Thing)
-				break
-			end
-		end
+	local WeaponType = nil
+	local Category = 0
+	local HeatRate = 0
+	local CoolRate = 0
+	local BaseEnergy = 0
+	local AccumEnergy = 0
+	local Damage = 0
+	local FireRate = 0
+	local Speed = 0
+	local Range = 0
+	local Accuracy = 0
+	local Efficiency = 0
+	local Targeting = 0
+	local Colour = Color()
+
+	if(Item ~= nil) then
+		WeaponType = TurretLib:GetWeaponType(Item.item)
+		Category = TurretLib:GetWeaponCategory(Item.item)
+		HeatRate = TurretLib:GetWeaponHeatRate(Item.item)
+		CoolRate = TurretLib:GetWeaponCoolRate(Item.item)
+		BaseEnergy = TurretLib:GetWeaponBaseEnergy(Item.item)
+		AccumEnergy = TurretLib:GetWeaponAccumEnergy(Item.item)
+		Damage = TurretLib:GetWeaponDamage(Item.item)
+		FireRate = TurretLib:GetWeaponFireRate(Item.item)
+		Speed = TurretLib:GetWeaponSpeed(Item.item)
+		Range = TurretLib:GetWeaponRange(Item.item)
+		Accuracy = TurretLib:GetWeaponAccuracy(Item.item)
+		Efficiency = TurretLib:GetWeaponEfficiency(Item.item)
+		Targeting = TurretLib:GetWeaponTargeting(Item.item)
+		Colour = TurretLib:GetWeaponColour(Item.item)
 	end
 
-	Item, Real = self:GetCurrentItems()
+	ColourDark:setHSV(0,0,0.3)
+	ColourLight:setHSV(0,0,0.8)
 
-	self.LblHeat.caption =
-	"+" .. TurretLib:GetWeaponHeatRate(Item.item) .. " HPS, " ..
-	"-" .. TurretLib:GetWeaponCoolRate(Item.item) .. " CR"
+	-- fill in all the values.
 
-	self.LblBaseEnergy.caption =
-	TurretLib:GetWeaponBaseEnergy(Item.item) .. " Base EPS"
+	self.BtnHeat.caption = "Heat Sinks"
+	self.LblHeat.caption = HeatRate .. " Heat, " .. CoolRate .. " Cool"
+	self.LblHeat.color = ColourLight
 
-	self.LblAccumEnergy.caption =
-	TurretLib:GetWeaponAccumEnergy(Item.item) .. " Accum EPS"
+	self.BtnBaseEnergy.caption = "Capacitors"
+	self.LblBaseEnergy.caption = BaseEnergy .. " Base EPS"
+	self.LblBaseEnergy.color = ColourLight
 
+	self.BtnBaseEnergy.caption = "Transformers"
+	self.LblAccumEnergy.caption = AccumEnergy .. " Accum EPS"
+	self.LblAccumEnergy.color = ColourLight
 
-	self.LblFireRate.caption =
-	TurretLib:GetWeaponFireRate(Item.item) .. " RPS"
+	self.BtnDamage.caption = "Ammunition"
+	self.LblDamage.caption = Damage .. " DMG"
+	self.LblDamage.color = ColourLight
 
-	self.LblSpeed.caption =
-	TurretLib:GetWeaponSpeed(Item.item)
+	self.BtnFireRate.caption = "Trigger Mechanisms"
+	self.LblFireRate.caption = FireRate .. " RPS"
+	self.LblFireRate.color = ColourLight
 
-	self.LblRange.caption =
-	round((TurretLib:GetWeaponRange(Item.item) / 100),3) .. " KM"
+	self.BtnSpeed.caption = "Drive Motors"
+	self.LblSpeed.caption = Speed
+	self.LblSpeed.color = ColourLight
 
-	BackgroundColour = TurretLib:GetWeaponColour(Item.item)
+	self.BtnRange.caption = "Barrel"
+	self.LblRange.caption = Range .. " KM"
+	self.LblRange.color = ColourLight
+
+	self.BtnAccuracy.caption = "Stabilizers"
+	self.LblAccuracy.caption = (Accuracy * 100) .. "%"
+	self.LblAccuracy.color = ColourLight
+
+	self.BtnEfficiency.caption = "Phase Filters"
+	self.LblEfficiency.caption = (Efficiency * 100) .. "%"
+	self.LblEfficiency.color = ColourLight
+
+	if(Targeting) then self.LblTargeting.caption = "YES"
+	else self.LblTargeting.caption = "NO"
+	end
+
+	BackgroundColour = Colour
 	self.NumColourHue.value = BackgroundColour.hue
 	self.NumColourSat.value = BackgroundColour.saturation
 	self.NumColourVal.value = BackgroundColour.value
 
+	if(WeaponType == "beam") then
+		self.BtnRange.caption = "Lenses"
+		self.BtnDamage.caption = "Power Amplifiers"
+	end
+
+	-- show everything.
+
+	self.BtnHeat:show()
+	self.BtnBaseEnergy:show()
+	self.BtnAccumEnergy:show()
+	self.BtnDamage:show()
+	self.BtnSpeed:show()
+	self.BtnRange:show()
+	self.BtnFireRate:show()
+	self.BtnAccumEnergy:show()
+
+	self.LblHeat:show()
+	self.LblBaseEnergy:show()
+	self.LblAccumEnergy:show()
+	self.LblDamage:show()
+	self.LblSpeed:show()
+	self.LblRange:show()
+	self.LblFireRate:show()
+	self.LblAccumEnergy:show()
+
+	-- hide things that make no sense to edit for this turret.
+
+	if(HeatRate == 0) then
+		self.LblHeat.color = ColourDark
+	end
+
+	if(BaseEnergy == 0) then
+		self.LblBaseEnergy.color = ColourDark
+	end
+
+	if(AccumEnergy == 0) then
+		self.LblAccumEnergy.color = ColourDark
+	end
+
+	if(Damage == 0) then
+		self.LblDamage.color = ColourDark
+	end
+
+	if(Speed == 0) then
+		self.LblSpeed.color = ColourDark
+	end
+
+	if(Range == 0) then
+		self.LblRange.color = ColourDark
+	end
+
+	if(FireRate == 0) then
+		self.LblFireRate.color = ColourDark
+	end
+
+	if((Accuracy == 0) or (Accuracy == 1)) then
+		self.LblAccuracy.color = ColourDark
+	end
+
+	if((Efficiency == 0) or (Efficiency == 1)) then
+		self.LblEfficiency.color = ColourDark
+	end
+
 	return
 end
 
+function Win:UpdateBinLabel()
 
+	local BuffValue = self:CalculateBinItems()
+
+	if(BuffValue > 0) then
+		self.BinLabel.caption = "Turrets To Scrap (+" .. BuffValue .. "%)"
+	else
+		self.BinLabel.caption = "Turrets To Scrap"
+	end
+
+	return
+end
 
 --------------------------------------------------------------------------------
 
@@ -588,6 +846,7 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	--------
 
 	self:UpdateFields()
+	self:UpdateBinLabel()
 	return
 end
 
@@ -624,6 +883,7 @@ function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 		self.Inv:remove(FromVec)
 	end
 
+	self:UpdateBinLabel()
 	return
 end
 
@@ -655,6 +915,7 @@ function Win:OnInvAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 		self.Bin:remove(FromVec)
 	end
 
+	self:UpdateBinLabel()
 	return
 end
 
@@ -678,40 +939,342 @@ end
 ----------------
 ----------------
 
---------------------------------------------------------------------------------
+function Win:OnClickedBtnHeat()
 
-function Win_Update(NewCurrentIndex)
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
 
-	Win:PopulateInventory()
-	Win:UpdateFields(NewCurrentIndex)
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponHeatRate(Real) == 0) then
+		PrintWarning("This turret is not producing any heat.")
+		return
+	end
+
+	TurretLib:ModWeaponHeatRate(Real,(BuffValue * -1))
+	TurretLib:ModWeaponCoolRate(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
 	return
 end
 
-function Win_OnItemClicked(...) Win:OnItemClicked(...) end
-function Win_OnItemAdded(...) Win:OnItemAdded(...) end
-function Win_OnBinClicked(...) Win:OnBinClicked(...) end
-function Win_OnBinAdded(...) Win:OnBinAdded(...) end
-function Win_OnInvClicked(...) Win:OnInvClicked(...) end
-function Win_OnInvAdded(...) Win:OnInvAdded(...) end
-function Win_OnUpdatePreviewColour(...) Win:OnUpdatePreviewColour(...) end
+function Win:OnClickedBtnBaseEnergy()
 
-function Win_OnClickedProjColour(...) Win:OnClickedProjColour(...) end
-function Win_OnClickedCoreColour(...) Win:OnClickedCoreColour(...) end
-function Win_OnClickedGlowColour(...) Win:OnClickedGlowColour(...) end
-function Win_OnClickedTargeting(...) Win:OnClickedTargeting(...) end
-function Win_OnClickedEnergy(...) Win:OnClickedEnergy(...) end
-function Win_OnClickedHeat(...) Win:OnClickedHeat(...) end
-function Win_OnClickedTracking(...) Win:OnClickedTracking(...) end
-function Win_OnClickedRange(...) Win:OnClickedRange(...) end
-function Win_OnClickedRate(...) Win:OnClickedRate(...) end
-function Win_OnClickedSize(...) Win:OnClickedSize(...) end
-function Win_OnClickedCrew(...) Win:OnClickedCrew(...) end
-function Win_OnChangedProjColour(...) Win:OnChangedProjColour(...) end
-function Win_OnChangedCoreColour(...) Win:OnChangedCoreColour(...) end
-function Win_OnChangedGlowColour(...) Win:OnChangedGlowColour(...) end
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
 
-function Win_OnTextBoxChanged(...) end
-function Win_OnButtonClicked(...) end
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponBaseEnergy(Real) == 0) then
+		PrintWarning("This turret does not require any power")
+		return
+	end
+
+	TurretLib:ModWeaponBaseEnergy(Real,(BuffValue * -1))
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnAccumEnergy()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponAccumEnergy(Real) == 0) then
+		PrintWarning("This turret does not demand additional power")
+		return
+	end
+
+	TurretLib:ModWeaponAccumEnergy(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnFireRate()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponFireRate(Real) == 0) then
+		PrintWarning("This turret does not have a fire rate")
+		return
+	end
+
+	TurretLib:ModWeaponFireRate(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnSpeed()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponSpeed(Real) == 0) then
+		PrintWarning("This turret does not turn apparently")
+		return
+	end
+
+	TurretLib:ModWeaponSpeed(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnRange()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponRange(Real) == 0) then
+		PrintWarning("This turret has no reach apparently")
+		return
+	end
+
+	TurretLib:ModWeaponRange(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnDamage()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponDamage(Real) == 0) then
+		PrintWarning("This turret does not do any damage")
+		return
+	end
+
+	TurretLib:ModWeaponDamage(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnAccuracy()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+	local CurrentValue = TurretLib:GetWeaponAccuracy(Real)
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(CurrentValue == 0) then
+		PrintWarning("This turret has no accuracy apparently")
+		return
+	end
+
+	if(CurrentValue == 1) then
+		PrintWarning("This turret is at max accuracy.")
+		return
+	end
+
+	TurretLib:ModWeaponAccuracy(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnEfficiency()
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+	local CurrentValue = TurretLib:GetWeaponEfficiency(Real)
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(CurrentValue == 0) then
+		PrintWarning("This turret has no efficiency apparently")
+		return
+	end
+
+	if(CurrentValue == 1) then
+		PrintWarning("This turret is at max efficiency.")
+		return
+	end
+
+	TurretLib:ModWeaponEfficiency(Real,BuffValue)
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnTargeting()
+
+	local Mock, Real = Win:GetCurrentItems()
+	local PlayerRef = Player()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(PlayerRef.money < Config.CostTargeting) then
+		PrintError("You do not have enough credits")
+		return
+	end
+
+	TurretLib:ToggleWeaponTargeting(Real)
+	TurretLib:PlayerPayCredits(Config.CostTargeting)
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+function Win:OnClickedBtnColour()
+
+	local Mock, Real = Win:GetCurrentItems()
+	local NewColour = Color()
+	local PlayerRef = Player()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(PlayerRef.money < Config.CostColour) then
+		PrintError("You do not have enough credits")
+		return
+	end
+
+	NewColour:setHSV(
+		self.NumColourHue.value,
+		self.NumColourSat.value,
+		self.NumColourVal.value
+	)
+
+	TurretLib:SetWeaponColour(Real,NewColour)
+	TurretLib:PlayerPayCredits(Config.CostColour)
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
+--------------------------------------------------------------------------------
+
+function TurretModdingUI_Update(NewCurrentIndex)
+
+	Win:PopulateInventory(NewCurrentIndex)
+	Win:UpdateFields()
+	Win:UpdateBinLabel()
+	return
+end
+
+function TurretModdingUI_OnItemClicked(...) Win:OnItemClicked(...) end
+function TurretModdingUI_OnItemAdded(...) Win:OnItemAdded(...) end
+function TurretModdingUI_OnBinClicked(...) Win:OnBinClicked(...) end
+function TurretModdingUI_OnBinAdded(...) Win:OnBinAdded(...) end
+function TurretModdingUI_OnInvClicked(...) Win:OnInvClicked(...) end
+function TurretModdingUI_OnInvAdded(...) Win:OnInvAdded(...) end
+function TurretModdingUI_OnUpdatePreviewColour(...) Win:OnUpdatePreviewColour(...) end
+
+function TurretModdingUI_OnClickedBtnHeat(...) Win:OnClickedBtnHeat(...) end
+function TurretModdingUI_OnClickedBtnBaseEnergy(...) Win:OnClickedBtnBaseEnergy(...) end
+function TurretModdingUI_OnClickedBtnAccumEnergy(...) Win:OnClickedBtnAccumEnergy(...) end
+function TurretModdingUI_OnClickedBtnFireRate(...) Win:OnClickedBtnFireRate(...) end
+function TurretModdingUI_OnClickedBtnSpeed(...) Win:OnClickedBtnSpeed(...) end
+function TurretModdingUI_OnClickedBtnRange(...) Win:OnClickedBtnRange(...) end
+function TurretModdingUI_OnClickedBtnDamage(...) Win:OnClickedBtnDamage(...) end
+function TurretModdingUI_OnClickedBtnAccuracy(...) Win:OnClickedBtnAccuracy(...) end
+function TurretModdingUI_OnClickedBtnEfficiency(...) Win:OnClickedBtnEfficiency(...) end
+function TurretModdingUI_OnClickedBtnTargeting(...) Win:OnClickedBtnTargeting(...) end
+function TurretModdingUI_OnClickedBtnColour(...) Win:OnClickedBtnColour(...) end
 
 --------------------------------------------------------------------------------
 
@@ -731,7 +1294,10 @@ end
 function onCloseWindow()
 -- do something i dunno maybe when it is closed.
 
-	print("onCloseWindow")
+	Win.Item:clear()
+	Win.Bin:clear()
+	Win:UpdateFields()
+
 	return
 end
 
