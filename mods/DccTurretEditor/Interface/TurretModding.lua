@@ -21,6 +21,7 @@ local ConfigOK, Config = pcall(
 if(not ConfigOK)
 then
 	print("[DccTurretEditor] Error loading Config.lua - did you copy ConfigDefault.lua?")
+	return
 else
 	if(Config.Debug)
 	then printTable(Config) end
