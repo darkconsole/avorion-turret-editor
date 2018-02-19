@@ -21,7 +21,9 @@ The upgrades are small, but if you scav a lot of turrets you dont want and get
 none of the ones you do want, this can be a nice way to boost what you have. For
 example: if it says "Turrets To Scrap (+2%)" and you want to upgrade damage
 currently at 10, that means 2% of the current value, so that turret would be
-upgraded to 10.2 damage.
+upgraded to 10.2 damage. Because it is percentage based, the better the turret
+you are trying to upgrade and the better the turrets you scrap, the bigger the
+upgrade will be.
 
 The upgrade percentages will be able to be tweaked via a config file to better
 suit what you want.
