@@ -1,5 +1,5 @@
---- ../avorion-stock/mods/DccTurretEditor/TurretLib.lua	1969-12-31 18:00:00.000000000 -0600
-+++ ../avorion-turret-editor/mods/DccTurretEditor/TurretLib.lua	2018-02-19 01:41:36.154970900 -0600
+--- ../avorion-stock/mods/DccTurretEditor/Common/TurretLib.lua	1969-12-31 18:00:00.000000000 -0600
++++ ../avorion-turret-editor/mods/DccTurretEditor/Common/TurretLib.lua	2018-02-19 12:58:48.767000000 -0600
 @@ -0,0 +1,667 @@
 +local This = {};
 +
@@ -103,7 +103,7 @@
 +		Count = 0
 +	end
 +
-+	--Armory:setAmount(Index,Count)
++	Armory:setAmount(Index,Count)
 +	print("[DccTurretEditor] " .. Item.weaponName .. " count to " .. Count)
 +
 +	return
