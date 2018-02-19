@@ -13,10 +13,9 @@ define('PatchDir', '/avorion-turret-editor/patches');
 
 define('Files',[
 	'/data/scripts/commands/tmod.lua'                   => '/patch-commands-tmod.diff',
-	'/mods/DccTurretEditor/TurretLib.lua'               => '/Patch-Mods-DccTurretEditor-TurretLib.lua',
+	'/mods/DccTurretEditor/TurretLib.lua'               => '/Patch-Mods-DccTurretEditor-TurretLib.diff',
 	'/mods/DccTurretEditor/Commands/TurretModding.lua'  => '/Patch-Mods-DccTurretEditor-Commands-TurrentModding.diff',
-	'/mods/DccTurretEditor/Interface/TurretModding.lua' => '/Patch-Mods-DccTurretEditor-Interface-TurrentModding.diff',
-	'/mods/DccTurretEditor/Textures/Icon.png'           => '/Patch-Mods-DccTurretEditor-Textures-Icon.diff'
+	'/mods/DccTurretEditor/Interface/TurretModding.lua' => '/Patch-Mods-DccTurretEditor-Interface-TurrentModding.diff'
 ]);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +43,7 @@ $Command;
 
 foreach(Files as $File => $Patch) {
 	$Command = sprintf(
-		'diff -urN --strip-trailing-cr %s %s > %s',
+		'diff -urN --strip-trailing-cr --binary %s %s > %s',
 		escapeshellarg((ProjectRoot.StockDir.$File)),
 		escapeshellarg((ProjectRoot.ModDir.$File)),
 		escapeshellarg(Pathify(ProjectRoot.PatchDir.$Patch))
