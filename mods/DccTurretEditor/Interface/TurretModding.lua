@@ -23,7 +23,10 @@ local Config = {
 	-- turrets will buff 5%
 
 	CostColour = 2500,
+	-- how many credits to charge for a colour change.
+
 	CostTargeting = 10000,
+	-- how many credits to charge to enable auto targeting.
 
 	Debug = true
 }

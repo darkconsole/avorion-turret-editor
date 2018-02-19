@@ -100,7 +100,7 @@ function TurretLib_ServerCallback_ConsumePlayerInventory(Index,Num)
 		Count = 0
 	end
 
-	--Armory:setAmount(Index,Count)
+	Armory:setAmount(Index,Count)
 	print("[DccTurretEditor] " .. Item.weaponName .. " count to " .. Count)
 
 	return
