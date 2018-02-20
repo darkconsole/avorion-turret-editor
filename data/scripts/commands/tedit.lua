@@ -3,7 +3,7 @@ function execute(PlayerID, Command, Action, ...)
 
 	if(onServer())
 	then
-		Player(PlayerID):addScriptOnce("lib/dcc-turret-editor/cmd-inventory",Action,...)
+		print("The direct editing UI is not ready yet.")
 	end
 
 	return 0, "", ""
