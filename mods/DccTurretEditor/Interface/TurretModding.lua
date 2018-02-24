@@ -801,7 +801,7 @@ function Win:UpdateBinLabel()
 	local BuffValue = self:CalculateBinItems()
 
 	if(BuffValue > 0) then
-		self.BinLabel.caption = "Turrets To Scrap (+" .. BuffValue .. "%)"
+		self.BinLabel.caption = "Turrets To Scrap (+" .. round(BuffValue,3) .. "%)"
 	else
 		self.BinLabel.caption = "Turrets To Scrap"
 	end
