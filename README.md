@@ -23,7 +23,7 @@ Additionally, autotargeting can be added, and the colour of the projectiles and
 beam can be customised for credits. You want red beams and bullets? Then get
 some red beams and bullets.
 
-# Upgrade Options
+## Upgrade Options
 
 * Heat Sinks - Reduces the heat generated per shot, and increases the cooldown
   speed.
@@ -80,6 +80,9 @@ wrench on top of it.
    trigger mechanism. Hover over each button, the tooltip tells you what will
    happen. Clicking one of these buttons will consume the turrets in the scrap
    bin and upgrade the selected turret.
+
+   Stats which are already maxed out, or do not apply to the selected turret,
+   will be greyed out.
 
 4) You can add targeting and change the colour of the weapon for money. If you
    if you are just doing targeting and colour, you do not need to add any
