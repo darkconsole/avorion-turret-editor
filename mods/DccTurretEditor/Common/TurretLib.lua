@@ -414,14 +414,14 @@ function This:SetWeaponColour(Item,Colour)
 
 	Colour1:setHSV(
 		Colour.hue,
-		(Colour.saturation * 0.75),
+		(Colour.saturation * 0.5),
 		(Colour.value * 0.90)
 	)
 
 	Colour2:setHSV(
 		Colour.hue,
 		(Colour.saturation * 0.90),
-		(Colour.value * 0.70)
+		(Colour.value * 0.50)
 	)
 
 	for WeapIter,Weap in pairs(WeapList) do
