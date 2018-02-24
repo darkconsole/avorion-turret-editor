@@ -9,7 +9,7 @@ No longer must you play research station lottery or the shopping list game to
 fill a factory if you already have a turret you like. This mod allows you to
 cannibalize other turrets to upgrade an existing one.
 
-![Example Image](https://cdn.discordapp.com/attachments/231654495950602242/415010470584647691/unknown.png)
+![Example Image](https://i.imgur.com/W6fHVUf.png)
 
 You select the turret you want to upgrade and drag it to the big box. Then you
 can select up to 5 additional turrets to destroy and drag them to the smaller
@@ -18,6 +18,13 @@ selected turret. The tech level of the turrets you scrap is also part of the
 upgrade math, use turrets greater than or equal to the tech level of the turret
 you want to upgrade for maximum effect. The rarity of the turrets you are
 scrapping also affects the final result.
+
+The better the turret you are trying to upgrade, and the better weapons you use
+to upgrade it, the bigger the upgrade will be.
+
+![Example Image](https://i.imgur.com/dZeuIlm.png)
+
+![Example Image](https://i.imgur.com/5pEhomq.png)
 
 Additionally, autotargeting can be added, and the colour of the projectiles and
 beam can be customised for credits. You want red beams and bullets? Then get
@@ -66,6 +73,8 @@ While in one of your ships use the chat command `/tmod` this will attach the
 Engineering Weapons Bay to your ship, adding an icon to open the main window
 in the top right corner of the screen. It looks like a little turret with a
 wrench on top of it.
+
+![Example Image](https://i.imgur.com/NE8ybtU.png)
 
 1) Drag the turret you want to upgrade to the big box.
 
