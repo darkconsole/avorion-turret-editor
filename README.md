@@ -40,6 +40,9 @@ some red beams and bullets.
 
 ## Install
 
+If you don't read and follow these simple install instructions I will tell the
+Xsotan where you sleep.
+
 **Multiplayer Server Admin**
 
 1) Copy the `data` and `mods` folder into the game directory. This must be
