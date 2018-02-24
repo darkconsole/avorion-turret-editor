@@ -465,13 +465,17 @@ function Win:PopulateInventory(NewCurrentIndex)
 		end
 	end
 
-	-- sort starred items to the front of the list.
+	-- sort starred items to the front of the list, trash to the end.
 
 	table.sort(ItemList,function(a,b)
 		if(a.item.favorite and not b.item.favorite) then
 			return true
 		else
-			return false
+			if(b.item.trash and not a.item.trash) then
+				return true
+			else
+				return false
+			end
 		end
 	end)
 
