@@ -123,3 +123,10 @@ is not perfect.
 
 Make it a system upgrade chip that drops from combat/scavving instead of the
 chat command to attach it to your ship.
+
+## Support
+
+I use Patreon as a tip jar if you are feeling frisky. Be warned this Patreon
+page contains adult content because I'm actually a NSFW Skyrim modder at heart.
+
+https://www.patreon.com/darkconsole
