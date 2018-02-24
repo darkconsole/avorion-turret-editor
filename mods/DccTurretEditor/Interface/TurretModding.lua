@@ -693,7 +693,7 @@ function Win:UpdateFields()
 	self.LblBaseEnergy.caption = BaseEnergy .. " Base EPS"
 	self.LblBaseEnergy.color = ColourLight
 
-	self.BtnBaseEnergy.caption = "Transformers"
+	self.BtnAccumEnergy.caption = "Transformers"
 	self.LblAccumEnergy.caption = AccumEnergy .. " Accum EPS"
 	self.LblAccumEnergy.color = ColourLight
 
