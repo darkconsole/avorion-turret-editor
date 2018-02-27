@@ -1,3 +1,9 @@
+--[[----------------------------------------------------------------------------
+AVORION: Turret Modding Command: /tmod
+darkconsole <darkcee.legit@gmail.com>
+
+This script handles applying and updating the weapons bay on the players ship.
+----------------------------------------------------------------------------]]--
 
 package.path = package.path
 .. ";data/scripts/lib/?.lua"
@@ -8,22 +14,29 @@ require("utility")
 
 function initialize(Command,...)
 
+	print("[DccTurretEditor] TURRET MODDING COMMAND LOAD")
+
 	local ScriptFile = "mods/DccTurretEditor/Interface/TurretModding"
 	local PlayerRef = Player()
 	local Ship = Entity(Player().craftIndex)
 
+	-- house clean both sides of the isle.
+
 	Ship:removeScript(ScriptFile)
 
-	--------
+	-- but from here on, do server side authority.
 
-	local DefaultOK, Default = pcall(
-		require,
-		'mods.DccTurretEditor.ConfigDefault'
-	)
+	if(not onServer()) then
+		return terminate()
+	end
 
-	if(not DefaultOK) then
+	-- make sure we could load the config.
+
+	local Config = require("mods.DccTurretEditor.Common.ConfigLib")
+
+	if(not Config.OK) then
 		deferredCallback(
-			1, "WeDoneHereAndThere",
+			0, "WeDoneHereAndThere",
 			"Weapon Engineering: ConfigDefault.lua Error",
 			"Did you RENAME ConfigDefault.lua? Don't do that."
 		)
@@ -32,29 +45,7 @@ function initialize(Command,...)
 
 	--------
 
-	local ConfigOK, Config = pcall(
-		require,
-		'mods.DccTurretEditor.Config'
-	)
-
-	if(not ConfigOK)
-	then
-		deferredCallback(
-			1, "WeDoneHereAndThere",
-			"Weapon Engineering: Config.lua Error",
-			"Did you remember to COPY PASTE ConfigDefault.lua?"
-		)
-		return
-	end
-
-	--------
-
-	if(onServer())
-	then
-		print("[DccTurretEditor] Adding Turret Modding to " .. PlayerRef.name .. " on " .. Ship.name)
-		Ship:addScriptOnce(ScriptFile)
-	end
-
+	Ship:addScriptOnce(ScriptFile)
 	return terminate()
 end
 

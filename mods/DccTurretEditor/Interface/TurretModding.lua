@@ -1,33 +1,19 @@
-package.path = package.path
-.. ";data/scripts/lib/?.lua"
-.. ";data/scripts/sector/?.lua"
-.. ";data/scripts/?.lua"
+--[[----------------------------------------------------------------------------
+AVORION: Turret Modding UI
+darkconsole <darkcee.legit@gmail.com>
 
-require("galaxy")
-require("utility")
-require("faction")
-require("player")
-require("randomext")
-require("stringutility")
+This script handles the UI for the Engineering Weapons Bay.
+----------------------------------------------------------------------------]]--
 
-local SellableInventoryItem = require("sellableinventoryitem")
-local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
-local Config = require("mods.DccTurretEditor.Common.ConfigLib")
+function PrintServer(TheMessage)
+-- only print this message on the server.
 
-if(Config == nil) then
-	print("[DccTurretEditor] There was a problem loading configs. Mod Load Canceled.")
-	return terminate()
+	if(onServer()) then
+		print("[DccTurretEditor] " .. TheMessage)
+	end
+
+	return
 end
-
-if(Config.Debug and onClient()) then
-	print("\n<DccTurretEditorConfig>")
-	printTable(Config)
-	print("</DccTurretEditorConfig>\n")
-end
-
---------------------------------------------------------------------------------
-
--- utility functions.
 
 function PrintDebug(TheMessage)
 -- show debugging messages in the console.
@@ -59,6 +45,43 @@ function PrintWarning(TheMessage)
 	displayChatMessage(TheMessage,"DccTurretEditor",2)
 	return
 end
+
+--------------------------------------------------------------------------------
+
+package.path = package.path
+.. ";data/scripts/lib/?.lua"
+.. ";data/scripts/sector/?.lua"
+.. ";data/scripts/?.lua"
+
+PrintServer("TURRET MODDING UI LOAD")
+
+require("galaxy")
+require("utility")
+require("faction")
+require("player")
+require("randomext")
+require("stringutility")
+
+local SellableInventoryItem = require("sellableinventoryitem")
+local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
+local Config = require("mods.DccTurretEditor.Common.ConfigLib")
+
+--------------------------------------------------------------------------------
+
+if(not Config.OK) then
+	PrintServer("There was a problem loading configs. Mod Load Canceled.")
+	return terminate()
+end
+
+if(Config.Debug and onServer()) then
+	print("\n<DccTurretEditorConfig>")
+	printTable(Config)
+	print("</DccTurretEditorConfig>\n")
+end
+
+--------------------------------------------------------------------------------
+
+-- utility functions.
 
 function FramedRect(Container,X,Y,Cols,Rows,Padding)
 -- for this trained rekt. give it a container you want to grid things out into

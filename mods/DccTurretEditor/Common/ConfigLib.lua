@@ -1,5 +1,13 @@
 
+local PrintMessage = function(Message)
+	if(onServer()) then
+		print("[DccTurretEditorConfig] " .. Message)
+	end
+end
+
 local This = {
+
+	OK = false,
 
 	RarityMult = 0.0,
 	CostColour = 0,
@@ -9,7 +17,8 @@ local This = {
 	Debug = false,
 
 	LoadDefault = function(self)
-		print("[DccTurretEditor] Loading ConfigDefault.lua")
+
+		PrintMessage("Loading ConfigDefault.lua")
 
 		local IsOK, Input = pcall(
 			require,
@@ -17,7 +26,7 @@ local This = {
 		)
 
 		if(not IsOK) then
-			print("[DccTurretEditor] Error loading ConfigDefault.lua")
+			PrintMessage("Error loading ConfigDefault.lua")
 			return false
 		end
 
@@ -32,12 +41,13 @@ local This = {
 
 		--------
 
-		print("[DccTurretEditor] ConfigDefault.lua OK")
+		self.OK = true
+		PrintMessage("ConfigDefault.lua OK")
 		return true
 	end,
 
 	LoadCustom = function(self)
-		print("[DccTurretEditor] Loading Config.lua")
+		PrintMessage("Loading Config.lua")
 
 		local IsOK, Input = pcall(
 			require,
@@ -45,7 +55,7 @@ local This = {
 		)
 
 		if(not IsOK) then
-			print("[DccTurretEditor] Config.lua not found. Skipping.")
+			PrintMessage("Config.lua not found. Skipping.")
 			return
 		end
 
@@ -71,16 +81,14 @@ local This = {
 
 		--------
 
-		print("[DccTurretEditor] Config.lua OK")
+		PrintMessage("Config.lua OK")
 		return
 	end
 
 };
 
-if(not This:LoadDefault()) then
-	return nil
+if(This:LoadDefault()) then
+	This:LoadCustom()
 end
-
-This:LoadCustom()
 
 return This;
