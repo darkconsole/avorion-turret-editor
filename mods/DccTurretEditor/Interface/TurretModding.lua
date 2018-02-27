@@ -64,22 +64,7 @@ require("stringutility")
 
 local SellableInventoryItem = require("sellableinventoryitem")
 local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
-local Config = require("mods.DccTurretEditor.Common.ConfigLib")
-
---------------------------------------------------------------------------------
-
-if(not Config.OK) then
-	PrintServer("There was a problem loading configs. Mod Load Canceled.")
-	return terminate()
-end
-
-if(Config.Debug and onServer()) then
-	print("\n<DccTurretEditorConfig>")
-	printTable(Config)
-	print("</DccTurretEditorConfig>\n")
-end
-
---------------------------------------------------------------------------------
+local Config = nil
 
 -- utility functions.
 
@@ -139,7 +124,7 @@ function Win:OnInit()
 
 	self.Res = getResolution()
 	self.Size = vec2(900,700)
-	self.UI = ScriptUI()
+	self.UI = ScriptUI(Player().craftIndex)
 
 	self.Window = self.UI:createWindow(Rect(
 		(self.Res * 0.5 - self.Size * 0.5),
@@ -152,7 +137,6 @@ function Win:OnInit()
 	self.UI:registerWindow(self.Window,self.Title)
 
 	self:BuildUI()
-	self:UpdateFields()
 	return
 end
 
@@ -420,7 +404,7 @@ function Win:BuildUI()
 
 	self.BtnTargeting = self.Window:createButton(
 		Rect(),
-		("Targeting (Cr. " .. toReadableValue(Config.CostTargeting)  .. ")"),
+		"Targeting",
 		"TurretModdingUI_OnClickedBtnTargeting"
 	)
 	self.BtnTargeting.textSize = FontSize3
@@ -439,7 +423,7 @@ function Win:BuildUI()
 
 	self.BtnColour = self.Window:createButton(
 		Rect(),
-		"Colour HSV (Cr. " .. toReadableValue(Config.CostColour) .. ")",
+		"Colour HSV",
 		"TurretModdingUI_OnClickedBtnColour"
 	)
 	self.BtnColour.textSize = FontSize3
@@ -705,6 +689,9 @@ function Win:UpdateFields()
 	ColourLight:setHSV(0,0,0.8)
 
 	-- fill in all the values.
+
+	self.BtnTargeting.caption = "Targeting (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
+	self.BtnColour.caption = "Colour HSV (Cr. " .. toReadableValue(Config.CostColour) .. ")"
 
 	self.BtnHeat.caption = "Heat Sinks"
 	self.LblHeat.caption = HeatRate .. " Heat, " .. CoolRate .. " Cool"
@@ -1280,6 +1267,7 @@ function TurretModdingUI_Update(NewCurrentIndex)
 	return
 end
 
+function TurretModdingUI_OnInit(...) Win:OnInit(...) end
 function TurretModdingUI_OnItemClicked(...) Win:OnItemClicked(...) end
 function TurretModdingUI_OnItemAdded(...) Win:OnItemAdded(...) end
 function TurretModdingUI_OnBinClicked(...) Win:OnBinClicked(...) end
@@ -1316,12 +1304,13 @@ end
 --------------------------------------------------------------------------------
 
 function onCloseWindow()
--- do something i dunno maybe when it is closed.
+-- clear out the dialog when closed.
 
-	Win.Item:clear()
+	Win.Inv:clear()
 	Win.Bin:clear()
-	Win:UpdateFields()
+	Win.Item:clear()
 
+	Win:UpdateFields()
 	return
 end
 
@@ -1339,7 +1328,9 @@ function onShowWindow()
 	Win.Bin:addEmpty()
 
 	Win.Inv:clear()
+	Win.Inv:addEmpty()
 
+	Win:UpdateFields()
 	Win:PopulateInventory()
 	return
 end
@@ -1349,10 +1340,31 @@ end
 function initialize()
 -- script bootstrapping.
 
-	if(onServer())
-	then return end
+	if(onServer()) then
+		local InputConfig = require("mods.DccTurretEditor.Common.ConfigLib")
+		return deferredCallback(
+			0.5,"PushConfigToClient",
+			Player(),
+			InputConfig
+		)
+	end
 
 	print("TurretModding:initalize")
+	return
+end
+
+function PushConfigToClient(ToPlayer,InputConfig)
+-- push the config to the client.
+
+	print("[DccTurretEditor] Sending Config To Client")
+	invokeClientFunction(ToPlayer,"RecvConfigFromServer",InputConfig)
+end
+
+function RecvConfigFromServer(InputConfig)
+-- handle getting config from the server.
+
+	print("[DccTurretEditor] Received Config From Server")
+	Config = InputConfig
 
 	return
 end
@@ -1363,9 +1375,7 @@ function initUI()
 	if(onServer())
 	then return end
 
-	print("TurretModding:initUI")
 	Win:OnInit()
-
 	return
 end
 

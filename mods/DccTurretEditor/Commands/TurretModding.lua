@@ -14,20 +14,19 @@ require("utility")
 
 function initialize(Command,...)
 
-	print("[DccTurretEditor] TURRET MODDING COMMAND LOAD")
-
 	local ScriptFile = "mods/DccTurretEditor/Interface/TurretModding"
 	local PlayerRef = Player()
 	local Ship = Entity(Player().craftIndex)
 
 	-- house clean both sides of the isle.
 
+	print("[DccTurretEditor] TURRET MODDING COMMAND LOAD")
 	Ship:removeScript(ScriptFile)
 
 	-- but from here on, do server side authority.
 
 	if(not onServer()) then
-		return terminate()
+		return
 	end
 
 	-- make sure we could load the config.
