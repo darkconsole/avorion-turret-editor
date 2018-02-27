@@ -1,4 +1,6 @@
+
 local This = {};
+local Config = require("mods.DccTurretEditor.Common.ConfigLib")
 
 --------------------------------------------------------------------------------
 -- these things are used by the ui to perform authoritive tasks on the server
@@ -414,20 +416,20 @@ function This:SetWeaponColour(Item,Colour)
 
 	Colour1:setHSV(
 		Colour.hue,
-		(Colour.saturation * 0.5),
-		(Colour.value * 0.90)
+		(Colour.saturation * Config.Colour1Mod.Sat),
+		(Colour.value * Config.Colour1Mod.Val)
 	)
 
 	Colour2:setHSV(
 		Colour.hue,
-		(Colour.saturation * 0.90),
-		(Colour.value * 0.50)
+		(Colour.saturation * Config.Colour2Mod.Sat),
+		(Colour.value * Config.Colour2Mod.Val)
 	)
 
 	for WeapIter,Weap in pairs(WeapList) do
 
 		if(Weap.isProjectile) then
-			Weap.pcolor = Colour2
+			Weap.pcolor = Colour1
 		else
 			Weap.binnerColor = Colour1
 			Weap.bouterColor = Colour2

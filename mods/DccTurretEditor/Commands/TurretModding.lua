@@ -16,6 +16,22 @@ function initialize(Command,...)
 
 	--------
 
+	local DefaultOK, Default = pcall(
+		require,
+		'mods.DccTurretEditor.ConfigDefault'
+	)
+
+	if(not DefaultOK) then
+		deferredCallback(
+			1, "WeDoneHereAndThere",
+			"Weapon Engineering: ConfigDefault.lua Error",
+			"Did you RENAME ConfigDefault.lua? Don't do that."
+		)
+		return
+	end
+
+	--------
+
 	local ConfigOK, Config = pcall(
 		require,
 		'mods.DccTurretEditor.Config'
@@ -26,7 +42,7 @@ function initialize(Command,...)
 		deferredCallback(
 			1, "WeDoneHereAndThere",
 			"Weapon Engineering: Config.lua Error",
-			"Did you remember to copy ConfigDefault.lua?"
+			"Did you remember to COPY PASTE ConfigDefault.lua?"
 		)
 		return
 	end

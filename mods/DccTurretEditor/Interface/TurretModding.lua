@@ -12,19 +12,17 @@ require("stringutility")
 
 local SellableInventoryItem = require("sellableinventoryitem")
 local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
+local Config = require("mods.DccTurretEditor.Common.ConfigLib")
 
-local ConfigOK, Config = pcall(
-	require,
-	'mods.DccTurretEditor.Config'
-)
+if(Config == nil) then
+	print("[DccTurretEditor] There was a problem loading configs. Mod Load Canceled.")
+	return terminate()
+end
 
-if(not ConfigOK)
-then
-	print("[DccTurretEditor] Error loading Config.lua - did you copy ConfigDefault.lua?")
-	return
-else
-	if(Config.Debug)
-	then printTable(Config) end
+if(Config.Debug and onClient()) then
+	print("\n<DccTurretEditorConfig>")
+	printTable(Config)
+	print("</DccTurretEditorConfig>\n")
 end
 
 --------------------------------------------------------------------------------
