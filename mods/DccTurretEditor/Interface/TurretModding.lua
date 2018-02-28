@@ -666,6 +666,7 @@ function Win:UpdateFields()
 	local Accuracy = 0
 	local Efficiency = 0
 	local Targeting = 0
+	local GunCount = 0
 	local Colour = Color()
 
 	if(Item ~= nil) then
@@ -682,6 +683,7 @@ function Win:UpdateFields()
 		Accuracy = TurretLib:GetWeaponAccuracy(Item.item)
 		Efficiency = TurretLib:GetWeaponEfficiency(Item.item)
 		Targeting = TurretLib:GetWeaponTargeting(Item.item)
+		GunCount = TurretLib:GetWeaponCount(Item.item)
 		Colour = TurretLib:GetWeaponColour(Item.item)
 	end
 
@@ -706,7 +708,7 @@ function Win:UpdateFields()
 	self.LblAccumEnergy.color = ColourLight
 
 	self.BtnDamage.caption = "Ammunition"
-	self.LblDamage.caption = Damage .. " DMG"
+	self.LblDamage.caption = Damage .. " (" .. round((Damage * FireRate * GunCount),2) .. " DPS)"
 	self.LblDamage.color = ColourLight
 
 	self.BtnFireRate.caption = "Trigger Mechanisms"
@@ -1340,33 +1342,46 @@ end
 function initialize()
 -- script bootstrapping.
 
-	if(onServer()) then
-		local InputConfig = require("mods.DccTurretEditor.Common.ConfigLib")
-		return deferredCallback(
-			0.5,"PushConfigToClient",
-			Player(),
-			InputConfig
-		)
+	print("TurretModding:initalize")
+
+	-- script added, game loaded: executes both server and client.
+	-- jump to new sector: executes on the client only and the locals
+	-- get dumped...
+
+	-- when the client runs this we will ask the server for the config
+	-- to repopulate the local var.
+
+	if(onClient()) then
+		print("[DccTurretEditor] Asking Server For Config")
+		invokeServerFunction("PullConfigFromServer",Player().index,nil)
 	end
 
-	print("TurretModding:initalize")
 	return
 end
 
-function PushConfigToClient(ToPlayer,InputConfig)
--- push the config to the client.
+function PullConfigFromServer(ToPlayer,InputConfig)
+-- handle pulling the config from the server.
 
-	print("[DccTurretEditor] Sending Config To Client")
-	invokeClientFunction(ToPlayer,"RecvConfigFromServer",InputConfig)
-end
+	if(onServer()) then
+		-- when this function runs server side we need to load the config
+		-- and send it back to the client.
 
-function RecvConfigFromServer(InputConfig)
--- handle getting config from the server.
+		local InputConfig = require("mods.DccTurretEditor.Common.ConfigLib")
+		print("[DccTurretEditor] Sending Config To Client")
+		invokeClientFunction(
+			Player(ToPlayer),
+			"PullConfigFromServer",
+			ToPlayer,
+			InputConfig
+		)
+	else
+		-- when this function runs on the client side we will store the
+		-- config that the server sent us.
 
-	print("[DccTurretEditor] Received Config From Server")
-	Config = InputConfig
+		print("[DccTurretEditor] Received Config From Server")
+		Config = InputConfig
+	end
 
-	return
 end
 
 function initUI()
