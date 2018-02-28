@@ -156,6 +156,19 @@ function This:BumpWeaponNameMark(Item)
 	return
 end
 
+function This:GetWeaponCount(Item)
+-- get how many guns are on this turret.
+
+	local WeapList = {Item:getWeapons()}
+	local Count = 0
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Count = Count + 1
+	end
+
+	return Count
+end
+
 --------
 
 function This:GetWeaponFireRate(Item)
