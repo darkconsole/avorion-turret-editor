@@ -5,6 +5,26 @@ darkconsole <darkcee.legit@gmail.com>
 This script handles the UI for the Engineering Weapons Bay.
 ----------------------------------------------------------------------------]]--
 
+
+
+--------------------------------------------------------------------------------
+
+package.path = package.path
+.. ";data/scripts/lib/?.lua"
+.. ";data/scripts/sector/?.lua"
+.. ";data/scripts/?.lua"
+
+require("galaxy")
+require("utility")
+require("faction")
+require("player")
+require("randomext")
+require("stringutility")
+
+local SellableInventoryItem = require("sellableinventoryitem")
+local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
+local Config = nil
+
 function PrintServer(TheMessage)
 -- only print this message on the server.
 
@@ -46,26 +66,6 @@ function PrintWarning(TheMessage)
 	return
 end
 
---------------------------------------------------------------------------------
-
-package.path = package.path
-.. ";data/scripts/lib/?.lua"
-.. ";data/scripts/sector/?.lua"
-.. ";data/scripts/?.lua"
-
-PrintServer("TURRET MODDING UI LOAD")
-
-require("galaxy")
-require("utility")
-require("faction")
-require("player")
-require("randomext")
-require("stringutility")
-
-local SellableInventoryItem = require("sellableinventoryitem")
-local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
-local Config = nil
-
 -- utility functions.
 
 function FramedRect(Container,X,Y,Cols,Rows,Padding)
@@ -89,6 +89,7 @@ function FramedRect(Container,X,Y,Cols,Rows,Padding)
 	return Rect(TopLeft,BottomRight)
 end
 
+PrintServer("TURRET MODDING UI LOAD")
 --------------------------------------------------------------------------------
 
 local Win = {
