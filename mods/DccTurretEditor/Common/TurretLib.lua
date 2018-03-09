@@ -6,44 +6,49 @@ local Config = require("mods.DccTurretEditor.Common.ConfigLib")
 -- these things are used by the ui to perform authoritive tasks on the server
 -- and then have the server phone home to the ui.
 
-function This:PlayerPayCredits(Amount)
+function This:PlayerPayCredits(PlayerID,Amount)
 	if(onClient()) then
 		return invokeServerFunction(
 			"TurretLib_ServerCallback_PlayerPayCredits",
+			PlayerID,
 			Amount
 		)
 	end
 end
 
-function TurretLib_ServerCallback_PlayerPayCredits(Amount)
+function TurretLib_ServerCallback_PlayerPayCredits(PlayerID,Amount)
 
-	Player():pay("",Amount)
+	Player(PlayerID):pay("",Amount)
 	return
 end
 
-function This:UpdatePlayerUI()
+function This:UpdatePlayerUI(PlayerID)
 
 	if(onClient()) then
-		return invokeServerFunction("TurretLib_ServerCallback_UpdatePlayerUI")
+		return invokeServerFunction(
+			"TurretLib_ServerCallback_UpdatePlayerUI",
+			PlayerID
+		)
 	end
 
 	return
 end
 
-function TurretLib_ServerCallback_UpdatePlayerUI()
+function TurretLib_ServerCallback_UpdatePlayerUI(PlayerID)
 
 	print("Ping Client UI from Server")
-	invokeClientFunction(Player(),"TurretModdingUI_Update")
+	invokeClientFunction(Player(PlayerID),"TurretModdingUI_Update")
 
 	return
 end
 
-function This:UpdatePlayerInventory(Real,Index)
+function This:UpdatePlayerInventory(PlayerID,Real,Index)
 -- push the command to update inventory to the server.
 
 	if(onClient()) then
 		return invokeServerFunction(
 			"TurretLib_ServerCallback_UpdatePlayerInventory",
+			PlayerID,
 			Real,
 			Index
 		)
@@ -52,11 +57,11 @@ function This:UpdatePlayerInventory(Real,Index)
 	return
 end
 
-function TurretLib_ServerCallback_UpdatePlayerInventory(Real,Index)
+function TurretLib_ServerCallback_UpdatePlayerInventory(PlayerID,Real,Index)
 
-	print("[DccTurretEditor] Replacing Item " .. Index .. " (" .. Real.weaponName .. ")")
+	print("[DccTurretEditor] Replacing Player Item " .. Index .. " (" .. Real.weaponName .. ")")
 
-	local Armory = Player():getInventory()
+	local Armory = Player(PlayerID):getInventory()
 	local Old = Armory:find(Index)
 	local Count = Armory:amount(Index)
 	local NewIndex = 0
@@ -74,17 +79,18 @@ function TurretLib_ServerCallback_UpdatePlayerInventory(Real,Index)
 	end
 
 	NewIndex = Armory:add(Real)
-	invokeClientFunction(Player(),"TurretModdingUI_Update",NewIndex)
+	invokeClientFunction(Player(PlayerID),"TurretModdingUI_Update",NewIndex)
 
 	return NewIndex
 end
 
-function This:ConsumePlayerInventory(Index,Num)
+function This:ConsumePlayerInventory(PlayerID,Index,Num)
 -- push the command to consume inventory to the server.
 
 	if(onClient()) then
 		return invokeServerFunction(
 			"TurretLib_ServerCallback_ConsumePlayerInventory",
+			PlayerID,
 			Index,
 			Num
 		)
@@ -92,9 +98,9 @@ function This:ConsumePlayerInventory(Index,Num)
 
 end
 
-function TurretLib_ServerCallback_ConsumePlayerInventory(Index,Num)
+function TurretLib_ServerCallback_ConsumePlayerInventory(PlayerID,Index,Num)
 
-	local Armory = Player():getInventory()
+	local Armory = Player(PlayerID):getInventory()
 	local Item = Armory:find(Index)
 	local Count = Armory:amount(Index) - Num
 

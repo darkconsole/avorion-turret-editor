@@ -623,7 +623,7 @@ function Win:ConsumeBinItems()
 
 	for ItemVec, Item in pairs(self.Bin:getItems()) do
 		self.Bin:remove(ItemVec)
-		TurretLib:ConsumePlayerInventory(Item.uvalue,1)
+		TurretLib:ConsumePlayerInventory(Player().index,Item.uvalue,1)
 	end
 
 	return
@@ -634,6 +634,7 @@ end
 function Win:UpdateItems(Mock,Real)
 
 	TurretLib:UpdatePlayerInventory(
+		Player().index,
 		Real,
 		self:GetCurrentItemIndex()
 	)
@@ -1225,7 +1226,7 @@ function Win:OnClickedBtnTargeting()
 	end
 
 	TurretLib:ToggleWeaponTargeting(Real)
-	TurretLib:PlayerPayCredits(Config.CostTargeting)
+	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostTargeting)
 
 	self:UpdateItems(Mock,Real)
 	return
@@ -1254,7 +1255,7 @@ function Win:OnClickedBtnColour()
 	)
 
 	TurretLib:SetWeaponColour(Real,NewColour)
-	TurretLib:PlayerPayCredits(Config.CostColour)
+	TurretLib:PlayerPayCredits(PlayerRef.index,Config.CostColour)
 
 	self:UpdateItems(Mock,Real)
 	return
