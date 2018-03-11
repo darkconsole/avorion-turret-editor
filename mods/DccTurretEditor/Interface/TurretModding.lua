@@ -1029,7 +1029,7 @@ function Win:OnClickedBtnAccumEnergy()
 		return
 	end
 
-	TurretLib:ModWeaponAccumEnergy(Real,BuffValue)
+	TurretLib:ModWeaponAccumEnergy(Real,(BuffValue * -1))
 
 	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
