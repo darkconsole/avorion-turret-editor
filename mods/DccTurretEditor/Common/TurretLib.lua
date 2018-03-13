@@ -448,7 +448,7 @@ function This:SetWeaponColour(Item,Colour)
 	for WeapIter,Weap in pairs(WeapList) do
 
 		if(Weap.isProjectile) then
-			Weap.pcolor = Colour1
+			Weap.pcolor = Colour2
 		else
 			Weap.binnerColor = Colour1
 			Weap.bouterColor = Colour2

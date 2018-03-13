@@ -955,6 +955,8 @@ end
 ----------------
 
 function Win:OnClickedBtnHeat()
+-- lower heat generation
+-- raise heat radiation
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -974,7 +976,7 @@ function Win:OnClickedBtnHeat()
 		return
 	end
 
-	TurretLib:ModWeaponHeatRate(Real,(BuffValue * -1))
+	TurretLib:ModWeaponHeatRate(Real,((BuffValue + Config.NearZeroFloat) * -1))
 	TurretLib:ModWeaponCoolRate(Real,BuffValue)
 
 	self:ConsumeBinItems()
@@ -983,6 +985,7 @@ function Win:OnClickedBtnHeat()
 end
 
 function Win:OnClickedBtnBaseEnergy()
+-- lower power requirement.
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1002,7 +1005,7 @@ function Win:OnClickedBtnBaseEnergy()
 		return
 	end
 
-	TurretLib:ModWeaponBaseEnergy(Real,(BuffValue * -1))
+	TurretLib:ModWeaponBaseEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
 
 	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
@@ -1010,6 +1013,7 @@ function Win:OnClickedBtnBaseEnergy()
 end
 
 function Win:OnClickedBtnAccumEnergy()
+-- lower power useage.
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1029,7 +1033,7 @@ function Win:OnClickedBtnAccumEnergy()
 		return
 	end
 
-	TurretLib:ModWeaponAccumEnergy(Real,(BuffValue * -1))
+	TurretLib:ModWeaponAccumEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
 
 	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
@@ -1037,6 +1041,7 @@ function Win:OnClickedBtnAccumEnergy()
 end
 
 function Win:OnClickedBtnFireRate()
+-- raise fire rate.
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1064,6 +1069,7 @@ function Win:OnClickedBtnFireRate()
 end
 
 function Win:OnClickedBtnSpeed()
+-- raise turret speed.
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1091,6 +1097,7 @@ function Win:OnClickedBtnSpeed()
 end
 
 function Win:OnClickedBtnRange()
+-- raise weapon range.
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1118,6 +1125,7 @@ function Win:OnClickedBtnRange()
 end
 
 function Win:OnClickedBtnDamage()
+-- raise weapon damage
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1145,6 +1153,7 @@ function Win:OnClickedBtnDamage()
 end
 
 function Win:OnClickedBtnAccuracy()
+-- raise accuracy
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1178,6 +1187,7 @@ function Win:OnClickedBtnAccuracy()
 end
 
 function Win:OnClickedBtnEfficiency()
+-- raise rifficiency
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1211,6 +1221,7 @@ function Win:OnClickedBtnEfficiency()
 end
 
 function Win:OnClickedBtnTargeting()
+-- toggle targeting
 
 	local Mock, Real = Win:GetCurrentItems()
 	local PlayerRef = Player()
@@ -1233,6 +1244,7 @@ function Win:OnClickedBtnTargeting()
 end
 
 function Win:OnClickedBtnColour()
+-- set colour
 
 	local Mock, Real = Win:GetCurrentItems()
 	local NewColour = Color()

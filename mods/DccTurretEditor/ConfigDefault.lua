@@ -20,6 +20,10 @@ local Config = {
 	-- glows look nicer. default: Sat = 0.9, Val = 0.5 strip brightness from
 	-- the glow effect of beams.
 
+	NearZeroFloat = 0.025,
+	-- when buffing values downwards its actually impossible to hit zero with
+	-- percentages so when numbers get small we will include a flat value.
+
 	Debug = true
 
 };

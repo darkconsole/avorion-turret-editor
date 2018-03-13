@@ -14,6 +14,7 @@ local This = {
 	CostTargeting = 0,
 	Colour1Mod = nil,
 	Colour2Mod = nil,
+	NearZeroFloat = 0.0,
 	Debug = false,
 
 	LoadDefault = function(self)
@@ -37,6 +38,7 @@ local This = {
 		self.CostTargeting = Input.CostTargeting
 		self.Colour1Mod = Input.Colour1Mod
 		self.Colour2Mod = Input.Colour2Mod
+		self.NearZeroFloat = Input.NearZeroFloat
 		self.Debug = Input.Debug
 
 		--------
@@ -78,6 +80,9 @@ local This = {
 
 		if(Input.CostDebug ~= nil)
 		then self.CostDebug = Input.CostDebug end
+
+		if(Input.NearZeroFloat ~= nil)
+		then self.NearZeroFloat = Input.NearZeroFloat end
 
 		--------
 
