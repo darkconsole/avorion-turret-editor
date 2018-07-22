@@ -45,25 +45,27 @@ function PrintDebug(TheMessage)
 	return
 end
 
-function PrintError(TheMessage)
--- show error messages to the user.
+function PrintClient(TheMessage, MessageType)
+	if onServer() then
+		local player = Player(callingPlayer)
+		if player then
+			Player(callingPlayer):sendChatMessage("", MessageType, TheMessage)
+		end
+	else
+		displayChatMessage(TheMessage,"DccTurretEditor", MessageType)
+	end
+end
 
-	displayChatMessage(TheMessage,"DccTurretEditor",1)
-	return
+function PrintError(TheMessage)
+	PrintClient(TheMessage, 1)
 end
 
 function PrintInfo(TheMessage)
--- show info messages to the user.
-
-	displayChatMessage(TheMessage,"DccTurretEditor",3)
-	return
+	PrintClient(TheMessage, 3)
 end
 
 function PrintWarning(TheMessage)
--- show info messages to the user.
-
-	displayChatMessage(TheMessage,"DccTurretEditor",2)
-	return
+	PrintClient(TheMessage, 2)
 end
 
 -- utility functions.
@@ -89,7 +91,7 @@ function FramedRect(Container,X,Y,Cols,Rows,Padding)
 	return Rect(TopLeft,BottomRight)
 end
 
-PrintServer("TURRET MODDING UI LOAD")
+--PrintServer("TURRET MODDING UI LOAD")
 --------------------------------------------------------------------------------
 
 local Win = {
@@ -97,6 +99,9 @@ local Win = {
 	UI = nil,
 	Res = nil,
 	Size = nil,
+
+	-- Flag used to force the client for the server to respond with the upgraded turret to prevent racing conditions
+	waitingForServer = false,
 
 	-- click selection id.
 	-- the ui api really was not expecting anyone to do more than two
@@ -216,10 +221,10 @@ function Win:BuildUI()
 
 	-- create the list of things in your inventory
 
-	self.Inv = self.Window:createSelection(Pane.bottom,12)
+	self.Inv = self.Window:createInventorySelection(Pane.bottom,12)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
-	self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
+	--self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
 	self.Inv.onReceivedFunction = "TurretModdingUI_OnInvAdded"
 
 	-- buttons don't place well so we alter their rects after creating.
@@ -460,14 +465,14 @@ function Win:PopulateInventory(NewCurrentIndex)
 	local Item = nil
 
 	self.Inv:clear()
+	self.Inv:fill(Player().index)
 
 	-- throw everything that makes sense into a table so we can sort it.
 
-	for Iter, Thing in pairs(Me:getInventory():getItems()) do
+	for Iter, Thing in pairs(self.Inv:getItems()) do
 		if(Thing.item.itemType == InventoryItemType.Turret or Thing.item.itemType == InventoryItemType.TurretTemplate)
 		then
-			local Item = SellableInventoryItem(Thing.item,Iter,Me)
-			table.insert(ItemList,Item)
+			table.insert(ItemList,Thing)
 		end
 	end
 
@@ -484,31 +489,10 @@ function Win:PopulateInventory(NewCurrentIndex)
 			end
 		end
 	end)
+	self.Inv:clear()
 
-	-- now create items in our dialog to represent the inventory items.
-	-- are are unstacking items for this.
-
-	for Iter, Thing in pairs(ItemList) do
-		Count = Thing.amount
-
-		while(Count > 0)
-		do
-			Item = InventorySelectionItem()
-			Item.item = Thing.item
-			Item.uvalue = Thing.index
-
-			if((NewCurrentIndex ~= nil) and (NewCurrentIndex == Item.uvalue)) then
-				-- handle when the server says an item was modded.
-				self.Item:clear()
-				self.Item:add(Item)
-				NewCurrentIndex = nil
-			else
-				-- populate the normal inventory.
-				self.Inv:add(Item)
-			end
-
-			Count = Count - 1
-		end
+	for _, item in pairs(ItemList) do
+		self.Inv:add(item)
 	end
 
 	-- empty the bin
@@ -546,7 +530,7 @@ function Win:GetCurrentItemReal()
 -- get the actual turret we are editing.
 
 	return Player():getInventory():find(
-		 self:GetCurrentItemIndex()
+		self:GetCurrentItemIndex()
 	)
 end
 
@@ -564,34 +548,62 @@ end
 
 --------
 
-function Win:CalculateBinItems()
--- calculate the bin items buff value.
+function Win:GetTurrets(player, scrapTurretIndices)
+	local inventory = player:getInventory()
+	local turrets = {}
 
-	local BuffValue = 0.0
+	for index, amount in pairs(scrapTurretIndices) do
+		local inventoryItem = inventory:find(index)
+		if inventoryItem then
+			turrets[index] = {amount=amount, inventoryItem=inventoryItem}
+		end
+	end
+
+	return turrets
+end
+
+function Win:CalculateBinItems(upgradeTurretIndex, scrapTurretIndices)
+	local player
+	if onServer() then
+		player = Player(callingPlayer)
+		if not player then return 0 end
+	else
+		player = Player()
+	end
+
+	local BuffValue = 1.0
 	local RarityValue = 0
 	local TechLevel = 0
 	local TechPer = 0
 	local Count = 0
-	local Mock, Real = self:GetCurrentItems()
+	local Real = player:getInventory():find(upgradeTurretIndex)
+	if not Real or (Real.itemType ~= InventoryItemType.Turret and Real.itemType ~= InventoryItemType.TurretTemplate) then return 0 end
 
-	for ItemVec, Item in pairs(self.Bin:getItems()) do
+	for index, ingredient in pairs(Win:GetTurrets(player, scrapTurretIndices)) do
+		local Item = ingredient.inventoryItem
+
 		-- count how many items we process.
-		Count = Count + 1
+		Count = Count + ingredient.amount
 
 		-- pool the tech level for average later.
-		TechLevel = TechLevel + Item.item.averageTech
+		TechLevel = TechLevel + Item.averageTech * ingredient.amount
 
 		-- calculate how muc the rarity is worth.
-		RarityValue = round((TurretLib:GetWeaponRarityValue(Item.item) * Config.RarityMult),3)
+		RarityValue = 1.0 + (round((TurretLib:GetWeaponRarityValue(Item) * Config.RarityMult),3) / 10)
 
-		BuffValue = BuffValue + RarityValue
+		for i=1,ingredient.amount do
+			BuffValue = BuffValue * RarityValue
+			--PrintDebug("BUFF_VALUE_INC: "..BuffValue)
+		end
 
 		PrintDebug(
-			"Bin Item: " .. Item.item.weaponName ..
-			", Rarity: " .. TurretLib:GetWeaponRarityValue(Item.item) ..
-			", Tech: " .. Item.item.averageTech
+			"Bin Item: " .. Item.weaponName ..
+			", Rarity: " .. TurretLib:GetWeaponRarityValue(Item) ..
+			", Tech: " .. Item.averageTech
 		)
 	end
+
+	BuffValue = (BuffValue - 1.0) * 10
 
 	if(Count == 0) then
 		return 0
@@ -612,34 +624,6 @@ function Win:CalculateBinItems()
 	)
 
 	return BuffValue
-end
-
-function Win:ConsumeBinItems()
--- get the items from the bin
-
-	local Armory = Player():getInventory()
-	local Real = nil
-	local Count = 0
-
-	for ItemVec, Item in pairs(self.Bin:getItems()) do
-		self.Bin:remove(ItemVec)
-		TurretLib:ConsumePlayerInventory(Player().index,Item.uvalue,1)
-	end
-
-	return
-end
-
---------------------------------------------------------------------------------
-
-function Win:UpdateItems(Mock,Real)
-
-	TurretLib:UpdatePlayerInventory(
-		Player().index,
-		Real,
-		self:GetCurrentItemIndex()
-	)
-
-	return
 end
 
 --------------------------------------------------------------------------------
@@ -810,7 +794,7 @@ end
 
 function Win:UpdateBinLabel()
 
-	local BuffValue = self:CalculateBinItems()
+	local BuffValue = self:CalculateBinItems(Win:Client_GetUpgradeTurretIndex(), Win:Client_GetScrapTurretIndices())
 
 	if(BuffValue > 0) then
 		self.BinLabel.caption = "Turrets To Scrap (+" .. round(BuffValue,3) .. "%)"
@@ -828,37 +812,18 @@ function Win:OnItemClicked(SelectID, FX, FY, Item, Button)
 	return
 end
 
-function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
+function Win:OnItemAdded(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
+	if not item then return end
 
-	local OldItem = self.Item:getItem(ivec2(0,0))
-	local FromVec = ivec2(FX,FY)
-	local BackgroundColour = Color()
-
-	if(SelectID == self.CurrentSelectID) then
-		print("[DccTurretEditor] Item was source and dest.")
+	-- Only allow items from inventory
+	if fromIndex == self.Item.index or fromIndex == self.Bin.index then
+		--print("NOT FROM INV")
 		return
 	end
 
-	self.Item:clear()
-	self.Item:add(Item)
-	print("[DccTurretEditor] Selected Turret: " .. Item.item.weaponName)
+	Win:moveItem(item, self.Inv, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
 
-	--------
-
-	if(self.CurrentSelectID == self.Bin.index) then
-		self.Bin:remove(FromVec)
-	elseif(self.CurrentSelectID == self.Inv.index) then
-		self.Inv:remove(FromVec)
-	end
-
-	--------
-
-	if(OldItem ~= nil) then
-		self.Inv:add(OldItem)
-		print("[DccTurretEditor] Replaced Turret: " .. OldItem.item.weaponName)
-	end
-
-	--------
+	--print("[DccTurretEditor] Selected Turret: " .. item.item.weaponName)
 
 	self:UpdateFields()
 	self:UpdateBinLabel()
@@ -868,35 +833,88 @@ end
 ----------------
 ----------------
 
+function Win:addItemToMainSelection(item)
+	if not item then return end
+	local inventory = self.Inv
+
+	if item.item.stackable then
+		-- find the item and increase the amount
+		for k, v in pairs(inventory:getItems()) do
+			if v.item == item.item then
+				v.amount = v.amount + 1
+
+				inventory:remove(k)
+				inventory:add(v, k)
+				return
+			end
+		end
+
+		item.amount = 1
+	end
+
+	-- when not found or not stackable, add it
+	inventory:add(item)
+end
+
+function Win:removeItemFromMainSelection(key)
+	local inventory = self.Inv
+	local item = inventory:getItem(key)
+	if not item then return end
+
+	if item.amount then
+		item.amount = item.amount - 1
+		if item.amount == 0 then item.amount = nil end
+	end
+
+	inventory:remove(key)
+
+	if item.amount then
+		inventory:add(item, key)
+	end
+end
+
+function Win:moveItem(item, from, to, fkey, tkey)
+	if not item then return end
+
+	if from.index == self.Inv.index then -- move from inventory to a selection
+		-- first, move the item that might be in place back to the inventory
+		if tkey then
+			Win:addItemToMainSelection(to:getItem(tkey))
+			to:remove(tkey)
+		end
+
+		Win:removeItemFromMainSelection(fkey)
+
+		-- fix item amount, we don't want numbers in the upper selections
+		item.amount = nil
+		to:add(item, tkey)
+
+	elseif to.index == self.Inv.index then
+		-- move from selection to inventory
+
+		Win:addItemToMainSelection(item)
+		from:remove(fkey)
+	end
+end
+
 function Win:OnBinClicked(SelectID, FX, FY, Item, Button)
 	self.CurrentSelectID = SelectID
 	return
 end
 
-function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
+function Win:OnBinAdded(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
 
-	local FromVec = ivec2(FX,FY)
+	if not item then return end
 
-	if(SelectID == self.CurrentSelectID) then
-		print("[DccTurretEditor] Bin was source and dest.")
+	-- don't allow dragging from/into the left hand selections
+	if fromIndex == self.Item.index or fromIndex == self.Bin.index then
+		print("NOT FROM INV")
 		return
 	end
 
-	if(tablelength(self.Bin:getItems()) >= 5) then
-		print("[DccTurretEditor] Bin is full.")
-		return
-	end
+	Win:moveItem(item, self.Inv, Selection(selectionIndex), ivec2(fkx, fky), ivec2(tkx, tky))
 
-	self.Bin:add(Item)
-	print("[DccTurretEditor] Added to Bin: " .. Item.item.weaponName)
-
-	--------
-
-	if(self.CurrentSelectID == self.Item.index) then
-		self.Item:remove(FromVec)
-	elseif(self.CurrentSelectID == self.Inv.index) then
-		self.Inv:remove(FromVec)
-	end
+	print("[DccTurretEditor] Added to Bin: " .. item.item.weaponName)
 
 	self:UpdateBinLabel()
 	return
@@ -910,25 +928,15 @@ function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
 	return
 end
 
-function Win:OnInvAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
-
-	local FromVec = ivec2(FX,FY)
-
-	if(SelectID == self.CurrentSelectID) then
+function Win:OnInvAdded(selectionIndex, fkx, fky, item, fromIndex, toIndex, tkx, tky)
+	if(fromIndex == toIndex) then
 		print("[DccTurretEditor] Inv was source and dest.")
 		return
 	end
 
-	self.Inv:add(Item)
-	print("[DccTurretEditor] Added to Inv: " .. Item.item.weaponName)
+	Win:moveItem(item, Selection(fromIndex), self.Inv, ivec2(fkx, fky), ivec2(tkx, tky))
 
-	--------
-
-	if(self.CurrentSelectID == self.Item.index) then
-		self.Item:remove(FromVec)
-	elseif(self.CurrentSelectID == self.Bin.index) then
-		self.Bin:remove(FromVec)
-	end
+	print("[DccTurretEditor] Added to Inv: " .. item.item.weaponName)
 
 	self:UpdateBinLabel()
 	return
@@ -955,322 +963,120 @@ end
 ----------------
 
 function Win:OnClickedBtnHeat()
--- lower heat generation
--- raise heat radiation
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponHeatRate(Real) == 0) then
-		PrintWarning("This turret is not producing any heat.")
-		return
-	end
-
-	TurretLib:ModWeaponHeatRate(Real,((BuffValue + Config.NearZeroFloat) * -1))
-	TurretLib:ModWeaponCoolRate(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	Win:Client_ApplyBuff("heat")
 end
 
 function Win:OnClickedBtnBaseEnergy()
--- lower power requirement.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponBaseEnergy(Real) == 0) then
-		PrintWarning("This turret does not require any power")
-		return
-	end
-
-	TurretLib:ModWeaponBaseEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	Win:Client_ApplyBuff("baseEnergy")
 end
 
 function Win:OnClickedBtnAccumEnergy()
--- lower power useage.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponAccumEnergy(Real) == 0) then
-		PrintWarning("This turret does not demand additional power")
-		return
-	end
-
-	TurretLib:ModWeaponAccumEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
-end
-
-function Win:OnClickedBtnFireRate()
--- raise fire rate.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponFireRate(Real) == 0) then
-		PrintWarning("This turret does not have a fire rate")
-		return
-	end
-
-	TurretLib:ModWeaponFireRate(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
-end
-
-function Win:OnClickedBtnSpeed()
--- raise turret speed.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponSpeed(Real) == 0) then
-		PrintWarning("This turret does not turn apparently")
-		return
-	end
-
-	TurretLib:ModWeaponSpeed(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
-end
-
-function Win:OnClickedBtnRange()
--- raise weapon range.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponRange(Real) == 0) then
-		PrintWarning("This turret has no reach apparently")
-		return
-	end
-
-	TurretLib:ModWeaponRange(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	Win:Client_ApplyBuff("accumulatedEnergy")
 end
 
 function Win:OnClickedBtnDamage()
--- raise weapon damage
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponDamage(Real) == 0) then
-		PrintWarning("This turret does not do any damage")
-		return
-	end
-
-	TurretLib:ModWeaponDamage(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	Win:Client_ApplyBuff("damage")
 end
 
 function Win:OnClickedBtnAccuracy()
--- raise accuracy
+	Win:Client_ApplyBuff("accuracy")
+end
 
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-	local CurrentValue = TurretLib:GetWeaponAccuracy(Real)
+function Win:OnClickedBtnFireRate()
+	Win:Client_ApplyBuff("fireRate")
+end
 
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
+function Win:OnClickedBtnSpeed()
+	Win:Client_ApplyBuff("tracking")
+end
+
+function Win:OnClickedBtnRange()
+	Win:Client_ApplyBuff("range")
+end
+
+function Win:Client_GetUpgradeTurretIndex()
+	local item = Win:GetCurrentItem()
+	if not item then return nil end
+	return item.index
+end
+
+function Win:Client_GetScrapTurretIndices()
+	local itemIndices = {}
+	for _, item in pairs(self.Bin:getItems()) do
+		local amount = itemIndices[item.index] or 0
+		amount = amount + 1
+		itemIndices[item.index] = amount
+	end
+	return itemIndices
+end
+
+function Client_ErrorRefresh(message)
+	Win.waitingForServer = false
+	PrintError(message)
+end
+
+function Client_Refresh(newIndex)
+	onShowWindow()
+	Win.waitingForServer = false
+	local newItem
+	local newPos
+
+	for position, item in pairs(Win.Inv:getItems()) do
+		if item.index == newIndex then
+			newPos = position
+			newItem = item
+			break
+		end
 	end
 
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
+	if newItem ~= nil and newPos ~= nil then
+		Win:moveItem(newItem, Win.Inv, Win.Item, newPos, ivec2(0, 0))
 	end
 
-	if(CurrentValue == 0) then
-		PrintWarning("This turret has no accuracy apparently")
-		return
-	end
+	Win:UpdateFields()
+	Win:UpdateBinLabel()
+end
 
-	if(CurrentValue == 1) then
-		PrintWarning("This turret is at max accuracy.")
-		return
-	end
+function Win:Client_ApplyBuff(buffType)
+	if self.waitingForServer then return PrintInfo("Processing, please wait") end
 
-	TurretLib:ModWeaponAccuracy(Real,BuffValue)
+	local upgradeTurret = Win:GetCurrentItem()
+	if not upgradeTurret then return PrintError("No turret selected") end
 
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	local scrapTurretIndices = Win:Client_GetScrapTurretIndices()
+	if tablelength(scrapTurretIndices) < 1 then return PrintError("No scrap turrets provided") end
+
+	self.waitingForServer = true
+	invokeServerFunction("Server_ApplyBuff", buffType, upgradeTurret.index, scrapTurretIndices)
 end
 
 function Win:OnClickedBtnEfficiency()
--- raise rifficiency
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-	local CurrentValue = TurretLib:GetWeaponEfficiency(Real)
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(CurrentValue == 0) then
-		PrintWarning("This turret has no efficiency apparently")
-		return
-	end
-
-	if(CurrentValue == 1) then
-		PrintWarning("This turret is at max efficiency.")
-		return
-	end
-
-	TurretLib:ModWeaponEfficiency(Real,BuffValue)
-
-	self:ConsumeBinItems()
-	self:UpdateItems(Mock,Real)
-	return
+	Win:Client_ApplyBuff("efficiency")
 end
 
 function Win:OnClickedBtnTargeting()
--- toggle targeting
+	if self.waitingForServer then return PrintInfo("Processing, please wait") end
 
-	local Mock, Real = Win:GetCurrentItems()
-	local PlayerRef = Player()
+	local upgradeTurret = Win:GetCurrentItem()
+	if not upgradeTurret then return PrintError("No turret selected") end
 
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(PlayerRef.money < Config.CostTargeting) then
-		PrintError("You do not have enough credits")
-		return
-	end
-
-	TurretLib:ToggleWeaponTargeting(Real)
-	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostTargeting)
-
-	self:UpdateItems(Mock,Real)
-	return
+	invokeServerFunction("Server_ToggleTargeting", upgradeTurret.index)
 end
 
 function Win:OnClickedBtnColour()
--- set colour
+	if self.waitingForServer then return PrintInfo("Processing, please wait") end
 
-	local Mock, Real = Win:GetCurrentItems()
-	local NewColour = Color()
-	local PlayerRef = Player()
+	local upgradeTurret = Win:GetCurrentItem()
+	if not upgradeTurret then return PrintError("No turret selected") end
 
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(PlayerRef.money < Config.CostColour) then
-		PrintError("You do not have enough credits")
-		return
-	end
-
-	NewColour:setHSV(
+	local newColour = Color()
+	newColour:setHSV(
 		self.NumColourHue.value,
 		self.NumColourSat.value,
 		self.NumColourVal.value
 	)
 
-	TurretLib:SetWeaponColour(Real,NewColour)
-	TurretLib:PlayerPayCredits(PlayerRef.index,Config.CostColour)
-
-	self:UpdateItems(Mock,Real)
-	return
+	invokeServerFunction("Server_SetColour", upgradeTurret.index, newColour)
 end
 
 --------------------------------------------------------------------------------
@@ -1320,7 +1126,7 @@ end
 --------------------------------------------------------------------------------
 
 function onCloseWindow()
--- clear out the dialog when closed.
+	-- clear out the dialog when closed.
 
 	Win.Inv:clear()
 	Win.Bin:clear()
@@ -1331,7 +1137,7 @@ function onCloseWindow()
 end
 
 function onShowWindow()
--- reset the dialog when it is opened.
+	-- reset the dialog when it is opened.
 
 	Win.Item:clear()
 	Win.Item:addEmpty()
@@ -1354,9 +1160,9 @@ end
 --------------------------------------------------------------------------------
 
 function initialize()
--- script bootstrapping.
+	-- script bootstrapping.
 
-	print("TurretModding:initalize")
+	-- print("TurretModding:initalize")
 
 	-- script added, game loaded: executes both server and client.
 	-- jump to new sector: executes on the client only and the locals
@@ -1374,14 +1180,15 @@ function initialize()
 end
 
 function PullConfigFromServer(ToPlayer,InputConfig)
--- handle pulling the config from the server.
+	-- handle pulling the config from the server.
 
 	if(onServer()) then
 		-- when this function runs server side we need to load the config
 		-- and send it back to the client.
 
-		local InputConfig = require("mods.DccTurretEditor.Common.ConfigLib")
-		print("[DccTurretEditor] Sending Config To Client")
+		Config = require("mods.DccTurretEditor.Common.ConfigLib")
+		local InputConfig = Config
+		-- print("[DccTurretEditor] Sending Config To Client")
 		invokeClientFunction(
 			Player(ToPlayer),
 			"PullConfigFromServer",
@@ -1399,7 +1206,7 @@ function PullConfigFromServer(ToPlayer,InputConfig)
 end
 
 function initUI()
--- ui bootstrapping.
+	-- ui bootstrapping.
 
 	if(onServer())
 	then return end
@@ -1408,4 +1215,182 @@ function initUI()
 	return
 end
 
+-------- Server Logic ---------
+if not onServer() then return end
 
+function Server_GetUpgradeTurret(player, upgradeTurretIndex)
+	local turret = player:getInventory():find(upgradeTurretIndex)
+	if not turret then
+		Server_RefreshErrorClient(player, "The selected upgrade turret is not in your inventory anymore.")
+		return nil
+	end
+	return turret
+end
+
+function Server_GetRequiredIngredients(upgradeTurretIndex, scrapTurretIndices)
+	local ingredients = {}
+
+	-- All scrap turrets will be consumed
+	for index, required in pairs(scrapTurretIndices) do
+		ingredients[index] = required
+	end
+
+	-- Also the upgraded turret
+	local amount = ingredients[upgradeTurretIndex] or 0
+	ingredients[upgradeTurretIndex] = amount + 1
+
+	return ingredients
+end
+
+function Server_HasAllIngredients(player, requiredIngredients)
+	local inventory = player:getInventory()
+
+	for index, required in pairs(requiredIngredients) do
+		if inventory:amount(index) < required then
+			Server_RefreshErrorClient(player, "One of the selected scrap turrets is not in your inventory anymore.")
+			return false
+		end
+	end
+
+	return true
+end
+
+function Server_GetPlayer()
+	local player
+	if callingPlayer then player = Player(callingPlayer) end
+	if not player then PrintDebug("NOT A PLAYER") end
+	return player
+end
+
+function Server_CheckCost(player, cost)
+	if(player.money < cost) then
+		Server_RefreshErrorClient(player, "You need "..cost.." credits to perform this upgrade")
+		return false
+	end
+	return true
+end
+
+function Server_AddNewTurret(player, newTurret)
+	local playerInventory = player:getInventory()
+
+	playerInventory:add(newTurret)
+
+	local newIndex = -1
+
+	for index, items in pairs(playerInventory:getItemsByType(InventoryItemType.Turret)) do
+		if newTurret:__eq(items.item) then
+			newIndex = index
+			break
+		end
+	end
+
+	Server_RefreshClient(player, newIndex)
+end
+
+function Server_RefreshErrorClient(player, errorMessage)
+	invokeClientFunction(player, "Client_ErrorRefresh", errorMessage)
+end
+
+function Server_RefreshClient(player, newIndex)
+	invokeClientFunction(player, "Client_Refresh", newIndex)
+end
+
+function Server_ToggleTargeting(upgradeTurretIndex)
+	local player = Server_GetPlayer()
+	if not player then return end
+
+	local upgradeTurret = Server_GetUpgradeTurret(player, upgradeTurretIndex)
+	if not upgradeTurret then return end
+
+	local cost = Config.CostTargeting
+	if not Server_CheckCost(player, cost) then return end
+
+	local newTurret = InventoryTurret(upgradeTurret:template())
+
+	TurretLib:ToggleWeaponTargeting(newTurret)
+
+	player:pay("", cost)
+	player:getInventory():remove(index)
+	Server_AddNewTurret(player, newTurret)
+end
+
+function Server_SetColour(upgradeTurretIndex, newColour)
+	local player = Server_GetPlayer()
+	if not player then return end
+
+	local upgradeTurret = Server_GetUpgradeTurret(player, upgradeTurretIndex)
+	if not upgradeTurret then return end
+
+	local cost = Config.CostColour
+	if not Server_CheckCost(player, cost) then return end
+
+	local newTurret = InventoryTurret(upgradeTurret:template())
+
+	TurretLib:SetWeaponColour(newTurret, newColour)
+
+	player:pay("", cost)
+	player:getInventory():remove(index)
+	Server_AddNewTurret(player, newTurret)
+end
+
+function Server_ApplyBuff(buffType, upgradeTurretIndex, scrapTurretIndices)
+	local player = Server_GetPlayer()
+	if not player then return end
+
+	if tablelength(scrapTurretIndices) < 1 then return Server_RefreshErrorClient(player, "No scrap turrets provided") end
+
+	local playerInventory = player:getInventory()
+
+	local upgradeTurret = Server_GetUpgradeTurret(player, upgradeTurretIndex)
+	if not upgradeTurret then return end
+
+	local ingredients = Server_GetRequiredIngredients(upgradeTurretIndex, scrapTurretIndices)
+	if not Server_HasAllIngredients(player, ingredients) then end
+
+	local buff = Win:CalculateBinItems(upgradeTurretIndex, scrapTurretIndices)
+
+	local template = upgradeTurret:template()
+	local newTurret = InventoryTurret(template)
+
+	if buffType == "damage" then
+		if TurretLib:GetWeaponDamage(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not do any damage") end
+		TurretLib:ModWeaponDamage(newTurret, buff)
+	elseif buffType == "heat" then
+		if TurretLib:GetWeaponHeatRate(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not produce any heat") end
+		TurretLib:ModWeaponHeatRate(newTurret, buff)
+	elseif buffType == "accuracy" then
+		if TurretLib:GetWeaponAccuracy(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not have accuracy") end
+		TurretLib:ModWeaponAccuracy(newTurret, buff)
+	elseif buffType == "fireRate" then
+		if TurretLib:GetWeaponFireRate(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not have a fire rate") end
+		TurretLib:ModWeaponFireRate(newTurret, buff)
+	elseif buffType == "range" then
+		if TurretLib:GetWeaponRange(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret has no reach apparently") end
+		TurretLib:ModWeaponRange(newTurret, buff)
+	elseif buffType == "tracking" then
+		if TurretLib:GetWeaponSpeed(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret has no tracking speed") end
+		TurretLib:ModWeaponSpeed(newTurret, buff)
+	elseif buffType == "baseEnergy" then
+		if TurretLib:GetWeaponBaseEnergy(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not require any power") end
+		TurretLib:ModWeaponBaseEnergy(newTurret, buff)
+	elseif buffType == "accumulatedEnergy" then
+		if TurretLib:GetWeaponAccumEnergy(newTurret) == 0 then return Server_RefreshErrorClient(player, "This turret does not demand additional power") end
+		TurretLib:ModWeaponAccumEnergy(newTurret, buff)
+	elseif buffType == "efficiency" then
+		local eff = TurretLib:GetWeaponEfficiency(newTurret)
+		if eff == 0 then return Server_RefreshErrorClient(player, "This turret has no efficiency") end
+		if eff >= 1 then return Server_RefreshErrorClient(player, "This turret is at maximum efficiency") end
+		TurretLib:ModWeaponEfficiency(newTurret, buff)
+	else
+		return Server_RefreshErrorClient(player, "Invalid buff type: " .. buffType)
+	end
+
+	-- Consume all ingredients (upgrade turret + scrap turrets)
+	for index, amount in pairs(ingredients) do
+		for i=1,amount do
+			playerInventory:remove(index)
+		end
+	end
+
+	Server_AddNewTurret(player, newTurret)
+end
