@@ -1,6 +1,6 @@
 # Weapon Engineering: Avorion Turret Editor
 
-![Warning](https://img.shields.io/badge/BETA-Use%20At%20Your%20Own%20Risk-red.svg) ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.20.4.10262-lightgrey.svg)
+![Warning](https://img.shields.io/badge/BETA-Use%20At%20Your%20Own%20Risk-red.svg) ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.20.4-lightgrey.svg)
 
 > *By the time we reach Jupiter Station, I don't want their engineers to have a
 > thing to do but give us a wash and a wax.*
