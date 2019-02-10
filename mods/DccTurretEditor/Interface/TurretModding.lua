@@ -20,7 +20,9 @@ require("faction")
 require("player")
 require("randomext")
 require("stringutility")
+require("callable")
 
+local This = {}
 local SellableInventoryItem = require("sellableinventoryitem")
 local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
 local Config = nil
@@ -1276,12 +1278,15 @@ end
 --------------------------------------------------------------------------------
 
 function TurretModdingUI_Update(NewCurrentIndex)
-
+	print("[DccTurretEditor] Update Turret Editor UI")
+	
 	Win:PopulateInventory(NewCurrentIndex)
 	Win:UpdateFields()
 	Win:UpdateBinLabel()
 	return
 end
+
+callable(nil,"TurretModdingUI_Update")
 
 function TurretModdingUI_OnInit(...) Win:OnInit(...) end
 function TurretModdingUI_OnItemClicked(...) Win:OnItemClicked(...) end
@@ -1353,26 +1358,6 @@ end
 
 --------------------------------------------------------------------------------
 
-function initialize()
--- script bootstrapping.
-
-	print("TurretModding:initalize")
-
-	-- script added, game loaded: executes both server and client.
-	-- jump to new sector: executes on the client only and the locals
-	-- get dumped...
-
-	-- when the client runs this we will ask the server for the config
-	-- to repopulate the local var.
-
-	if(onClient()) then
-		print("[DccTurretEditor] Asking Server For Config")
-		invokeServerFunction("PullConfigFromServer",Player().index,nil)
-	end
-
-	return
-end
-
 function PullConfigFromServer(ToPlayer,InputConfig)
 -- handle pulling the config from the server.
 
@@ -1396,6 +1381,28 @@ function PullConfigFromServer(ToPlayer,InputConfig)
 		Config = InputConfig
 	end
 
+end
+
+callable(nil,"PullConfigFromServer")
+
+function initialize()
+-- script bootstrapping.
+
+	print("TurretModding:initalize")
+
+	-- script added, game loaded: executes both server and client.
+	-- jump to new sector: executes on the client only and the locals
+	-- get dumped...
+
+	-- when the client runs this we will ask the server for the config
+	-- to repopulate the local var.
+
+	if(onClient()) then
+		print("[DccTurretEditor] Asking Server For Config")
+		invokeServerFunction("PullConfigFromServer",Player().index,nil)
+	end
+
+	return
 end
 
 function initUI()

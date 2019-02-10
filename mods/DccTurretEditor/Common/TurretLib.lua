@@ -22,6 +22,10 @@ function TurretLib_ServerCallback_PlayerPayCredits(PlayerID,Amount)
 	return
 end
 
+callable(nil,"TurretLib_ServerCallback_PlayerPayCredits")
+
+--------
+
 function This:UpdatePlayerUI(PlayerID)
 
 	if(onClient()) then
@@ -41,6 +45,10 @@ function TurretLib_ServerCallback_UpdatePlayerUI(PlayerID)
 
 	return
 end
+
+callable(nil,"TurretLib_ServerCallback_UpdatePlayerUI")
+
+--------
 
 function This:UpdatePlayerInventory(PlayerID,Real,Index)
 -- push the command to update inventory to the server.
@@ -84,6 +92,10 @@ function TurretLib_ServerCallback_UpdatePlayerInventory(PlayerID,Real,Index)
 	return NewIndex
 end
 
+callable(nil,"TurretLib_ServerCallback_UpdatePlayerInventory")
+
+--------
+
 function This:ConsumePlayerInventory(PlayerID,Index,Num)
 -- push the command to consume inventory to the server.
 
@@ -113,6 +125,8 @@ function TurretLib_ServerCallback_ConsumePlayerInventory(PlayerID,Index,Num)
 
 	return
 end
+
+callable(nil,"TurretLib_ServerCallback_ConsumePlayerInventory")
 
 --------------------------------------------------------------------------------
 -- these ones need to deal with each individual weapon on the turret -----------

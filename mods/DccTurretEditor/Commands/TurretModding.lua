@@ -5,12 +5,15 @@ darkconsole <darkcee.legit@gmail.com>
 This script handles applying and updating the weapons bay on the players ship.
 ----------------------------------------------------------------------------]]--
 
+local TurretEditorCommand = {}
+
 package.path = package.path
 .. ";data/scripts/lib/?.lua"
 .. ";data/scripts/sector/?.lua"
 .. ";data/scripts/?.lua"
 
 require("utility")
+require("callable")
 
 function initialize(Command,...)
 
@@ -48,7 +51,7 @@ function initialize(Command,...)
 	return terminate()
 end
 
-function WeDoneHereAndThere(Title,Text)
+function TurretEditorCommand.WeDoneHereAndThere(Title,Text)
 	if(onServer())
 	then
 		invokeClientFunction(Player(),"WeDoneHereAndThere",Title,Text)
@@ -60,3 +63,5 @@ function WeDoneHereAndThere(Title,Text)
 	terminate()
 	return
 end
+
+callable(TurretEditorCommand,"WeDoneHereAndThere")
