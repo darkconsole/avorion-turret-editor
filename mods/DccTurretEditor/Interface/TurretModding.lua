@@ -1313,7 +1313,7 @@ function Win:OnClickedBtnCoaxial()
 		return
 	end
 
-	if(PlayerRef.money < Config.CostTargeting) then
+	if(PlayerRef.money < Config.CostCoaxial) then
 		PrintError("You do not have enough credits")
 		return
 	end
