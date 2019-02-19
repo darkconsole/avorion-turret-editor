@@ -637,7 +637,7 @@ function This:GetWeaponSpeed(Item)
 end
 
 function This:ModWeaponSpeed(Item,Per)
--- modify the energy accumulation value by a percent.
+-- modify the tracking speed value by a percent.
 
 	This:BumpWeaponNameMark(Item)
 
@@ -648,6 +648,30 @@ function This:ModWeaponSpeed(Item,Per)
 	end
 
 	Item.turningSpeed = Value
+	return
+end
+
+function This:GetWeaponCoaxial(Item)
+--- get if this is a coaxial weapon.
+
+	return Item.coaxial
+end
+
+function This:SetWeaponCoaxial(Item,Val)
+-- set automatic targeting.
+
+	This:BumpWeaponNameMark(Item)
+
+	Item.coaxial = Val
+	return
+end
+	
+function This:ToggleWeaponCoaxial(Item)
+-- set automatic targeting.
+
+	This:BumpWeaponNameMark(Item)
+
+	Item.coaxial = not Item.coaxial
 	return
 end
 

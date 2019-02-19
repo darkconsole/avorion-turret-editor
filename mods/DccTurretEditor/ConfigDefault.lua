@@ -11,6 +11,9 @@ local Config = {
 	CostTargeting = 10000,
 	-- how many credits to charge to enable auto targeting.
 
+	CostCoaxial = 10000,
+	-- how many credits to charge to enable auto targeting.
+
 	Colour1Mod = { Sat = 0.50, Val = 0.90 },
 	-- when the user picks a colour modify it by this amount to try and make
 	-- beams look nicer. default, Sat = 0.5, Val = 0.9 strip colour from core.

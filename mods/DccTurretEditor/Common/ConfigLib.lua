@@ -12,6 +12,7 @@ local This = {
 	RarityMult = 0.0,
 	CostColour = 0,
 	CostTargeting = 0,
+	CostCoaxial = 0,
 	Colour1Mod = nil,
 	Colour2Mod = nil,
 	NearZeroFloat = 0.0,
@@ -36,6 +37,7 @@ local This = {
 		self.RarityMult = Input.RarityMult
 		self.CostColour = Input.CostColour
 		self.CostTargeting = Input.CostTargeting
+		self.CostCoaxial = Input.CostCoaxial
 		self.Colour1Mod = Input.Colour1Mod
 		self.Colour2Mod = Input.Colour2Mod
 		self.NearZeroFloat = Input.NearZeroFloat
@@ -71,6 +73,9 @@ local This = {
 
 		if(Input.CostTargeting ~= nil)
 		then self.CostTargeting = Input.CostTargeting end
+
+		if(Input.CostCoaxial ~= nil)
+		then self.CostCoaxial = Input.CostCoaxial end
 
 		if(Input.Colour1Mod ~= nil)
 		then self.Colour1Mod = Input.Colour1Mod end
