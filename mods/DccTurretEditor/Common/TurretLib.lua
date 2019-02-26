@@ -54,6 +54,8 @@ function This:UpdatePlayerInventory(PlayerID,Real,Index)
 -- push the command to update inventory to the server.
 
 	if(onClient()) then
+		Real:updateStaticStats()
+		
 		return invokeServerFunction(
 			"TurretLib_ServerCallback_UpdatePlayerInventory",
 			PlayerID,
@@ -684,18 +686,30 @@ end
 function This:SetWeaponCoaxial(Item,Val)
 -- set automatic targeting.
 
-	This:BumpWeaponNameMark(Item)
+	-- this is getting done by the damage mod
+	-- This:BumpWeaponNameMark(Item)
 
 	Item.coaxial = Val
+
+	-- from the weapon generator script:
+	-- coaxialDamageScale = turret.coaxial and 3 or 1
+
+	if(Item.coaxial) then
+		-- buff damage 3x
+		This:ModWeaponDamage(Item,200)
+	else
+		-- debuff damage 3x
+		This:ModWeaponDamage(Item,-66.6666)
+	end
+
 	return
 end
 	
 function This:ToggleWeaponCoaxial(Item)
 -- set automatic targeting.
 
-	This:BumpWeaponNameMark(Item)
+	This:SetWeaponCoaxial(Item,(not Item.coaxial))
 
-	Item.coaxial = not Item.coaxial
 	return
 end
 
@@ -729,7 +743,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 function This:GetWeaponCrew(Item)
 -- get required crew. if its a civil cannon it returns the miner count and if
