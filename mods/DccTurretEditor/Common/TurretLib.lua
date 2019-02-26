@@ -358,9 +358,17 @@ function This:GetWeaponEfficiency(Item)
 	for WeapIter,Weap in pairs(WeapList)
 	do
 		if(Item.category == WeaponCategory.Mining) then
-			return round(Weap.stoneEfficiency,5)
+			if(Weap.stoneRawEfficiency > 0.0) then
+				return round(Weap.stoneRawEfficiency,5)
+			else
+				return round(Weap.stoneRefinedEfficiency,5)
+			end
 		elseif(Item.category == WeaponCategory.Salvaging) then
-			return round(Weap.metalEfficiency,5)
+			if(Weap.metalRawEfficiency > 0.0) then
+				return round(Weap.metalRawEfficiency,5)
+			else
+				return round(Weap.metalRefinedEfficiency,5)
+			end
 		else
 			return 0
 		end
@@ -382,9 +390,17 @@ function This:ModWeaponEfficiency(Item,Per)
 	for WeapIter,Weap in pairs(WeapList) do
 
 		if(Item.category == WeaponCategory.Mining) then
-			Initial = Weap.stoneEfficiency
+			if(Weap.stoneRawEfficiency > 0.0) then
+				Initial = Weap.stoneRawEfficiency
+			else
+				Initial = Weap.stoneRefinedEfficiency
+			end
 		elseif(Item.category == WeaponCategory.Salvaging) then
-			Initial = Weap.metalEfficiency
+			if(Weap.metalRawEfficiency > 0.0) then
+				Initial = Weap.metalRawEfficiency
+			else
+				Initial = Weap.metalRefinedEfficiency
+			end
 		end
 
 		Value = ((Initial * (Per / 100)) + Initial)
@@ -402,10 +418,18 @@ function This:ModWeaponEfficiency(Item,Per)
 
 		if(Item.category == WeaponCategory.Mining) then
 			print("[DccTurretEditor] Modding Mining Gun: " .. Item.weaponName .. " " .. Initial .. " " .. Value)
-			Weap.stoneEfficiency = Value
+			if(Weap.stoneRawEfficiency > 0.0) then
+				Weap.stoneRawEfficiency = Value
+			else
+				Weap.stoneRefinedEfficiency = Value
+			end
 		elseif(Item.category == WeaponCategory.Salvaging) then
 			print("[DccTurretEditor] Modding Scav Gun: " .. Item.weaponName .. " " .. Initial .. " " .. Value)
-			Weap.metalEfficiency = Value
+			if(Weap.metalRawEfficiency > 0.0) then
+				Weap.metalRawEfficiency = Value
+			else
+				Weap.metalRefinedEfficiency = Value
+			end
 		end
 
 		Item:addWeapon(Weap)
