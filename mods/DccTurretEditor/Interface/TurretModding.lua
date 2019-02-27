@@ -126,7 +126,7 @@ local Win = {
 function Win:OnInit()
 
 	self.Res = getResolution()
-	self.Size = vec2(900,700)
+	self.Size = vec2(1200,700)
 	self.UI = ScriptUI(Player().craftIndex)
 
 	self.Window = self.UI:createWindow(Rect(
@@ -147,7 +147,7 @@ function Win:BuildUI()
 
 	local Pane = UIHorizontalSplitter(
 		Rect(self.Window.size),
-		10, 10, 0.65
+		10, 10, 0.6
 	)
 
 	local BPane = UIHorizontalSplitter(
@@ -157,7 +157,7 @@ function Win:BuildUI()
 
 	local TPane = UIVerticalSplitter(
 		BPane.top,
-		0, 0, 0.25
+		0, 0, 0.35
 	)
 
 	local TLPane = UIHorizontalSplitter(
@@ -218,7 +218,7 @@ function Win:BuildUI()
 
 	-- create the list of things in your inventory
 
-	self.Inv = self.Window:createSelection(Pane.bottom,12)
+	self.Inv = self.Window:createSelection(Pane.bottom,16)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
 	self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
@@ -227,8 +227,8 @@ function Win:BuildUI()
 	-- buttons don't place well so we alter their rects after creating.
 
 	self.UpgradeFrame = self.Window:createFrame(BPane.bottom)
-	local Rows = 9
-	local Cols = 4
+	local Rows = 7
+	local Cols = 5
 
 	local Hint, HintLine
 
@@ -392,7 +392,7 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnEfficiency"
 	)
 	self.BtnEfficiency.textSize = FontSize3
-	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,1,5,Cols,Rows)
+	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,5,1,Cols,Rows)
 	self.BtnEfficiency.tooltip = "Increase the efficiency of mining and scav lasers."
 
 	self.LblEfficiency = self.Window:createLabel(
@@ -400,7 +400,7 @@ function Win:BuildUI()
 		"$EFFICIENCY",
 		FontSize3
 	)
-	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,1,6,Cols,Rows)
+	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,5,2,Cols,Rows)
 	self.LblEfficiency.centered = true
 
 	--------
@@ -411,7 +411,7 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnTargeting"
 	)
 	self.BtnTargeting.textSize = FontSize3
-	self.BtnTargeting.rect = FramedRect(self.UpgradeFrame,1,8,Cols,Rows)
+	self.BtnTargeting.rect = FramedRect(self.UpgradeFrame,1,6,Cols,Rows)
 	self.BtnTargeting.tooltip = "Toggle Automatic Targeting.\n(Does not consume turrets)"
 
 	self.LblTargeting = self.Window:createLabel(
@@ -419,7 +419,7 @@ function Win:BuildUI()
 		"$TARGETING",
 		FontSize3
 	)
-	self.LblTargeting.rect = FramedRect(self.UpgradeFrame,1,9,Cols,Rows)
+	self.LblTargeting.rect = FramedRect(self.UpgradeFrame,1,7,Cols,Rows)
 	self.LblTargeting.centered = true
 
 	--------
@@ -430,7 +430,7 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnCoaxial"
 	)
 	self.BtnCoaxial.textSize = FontSize3
-	self.BtnCoaxial.rect = FramedRect(self.UpgradeFrame,2,8,Cols,Rows)
+	self.BtnCoaxial.rect = FramedRect(self.UpgradeFrame,2,6,Cols,Rows)
 	self.BtnCoaxial.tooltip = "Toggle Coaxial Mounting.\n(Does not consume turrets)"
 
 	self.LblCoaxial = self.Window:createLabel(
@@ -438,8 +438,19 @@ function Win:BuildUI()
 		"$COAXIAL",
 		FontSize3
 	)
-	self.LblCoaxial.rect = FramedRect(self.UpgradeFrame,2,9,Cols,Rows)
+	self.LblCoaxial.rect = FramedRect(self.UpgradeFrame,2,7,Cols,Rows)
 	self.LblCoaxial.centered = true
+
+	--------
+
+	self.BtnSize = self.Window:createButton(Rect(),"Size","TurretModdingUI_OnClickedBtnSize")
+	self.BtnSize.textSize = FontSize3
+	self.BtnSize.rect = FramedRect(self.UpgradeFrame,3,6,Cols,Rows)
+	self.BtnSize.tooltip = "Adjust Turret Size.\n(Does not consume turrets)"
+
+	self.NumSize = self.Window:createSlider(Rect(),5,30,25,"","TurretModdingUI_OnUpdatePreviewSize")
+	self.NumSize.rect = FramedRect(self.UpgradeFrame,3,7,Cols,Rows,5)
+	self.NumSize.showValue = false
 
 	--------
 
@@ -449,22 +460,22 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnColour"
 	)
 	self.BtnColour.textSize = FontSize3
-	self.BtnColour.rect = FramedRect(self.UpgradeFrame,4,8,Cols,Rows)
+	self.BtnColour.rect = FramedRect(self.UpgradeFrame,4,6,Cols,Rows)
 	self.BtnColour.tooltip = "Set Weapon Color.\n(Does not consume turrets)"
 
 	self.BgColourFrame = self.Window:createFrame(BPane.bottom)
-	self.BgColourFrame.rect = FramedRect(self.UpgradeFrame,4,9,Cols,Rows)
+	self.BgColourFrame.rect = FramedRect(self.UpgradeFrame,4,7,Cols,Rows)
 
 	self.NumColourHue = self.Window:createSlider(Rect(),0,360,18,"","TurretModdingUI_OnUpdatePreviewColour")
-	self.NumColourHue.rect = FramedRect(self.UpgradeFrame,((4*3)-2),9,(Cols*3),Rows,10)
+	self.NumColourHue.rect = FramedRect(self.UpgradeFrame,((4*3)-2),7,(Cols*3),Rows,5)
 	self.NumColourHue.showValue = false
 
 	self.NumColourSat = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
-	self.NumColourSat.rect = FramedRect(self.UpgradeFrame,((4*3)-1),9,(Cols*3),Rows,10)
+	self.NumColourSat.rect = FramedRect(self.UpgradeFrame,((4*3)-1),7,(Cols*3),Rows,5)
 	self.NumColourSat.showValue = false
 
 	self.NumColourVal = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
-	self.NumColourVal.rect = FramedRect(self.UpgradeFrame,((4*3)-0),9,(Cols*3),Rows,10)
+	self.NumColourVal.rect = FramedRect(self.UpgradeFrame,((4*3)-0),7,(Cols*3),Rows,5)
 	self.NumColourVal.showValue = false
 
 	return
@@ -692,6 +703,7 @@ function Win:UpdateFields()
 	local GunCount = 0
 	local Colour = Color()
 	local Coaxial = false
+	local Size = 0
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
@@ -710,6 +722,7 @@ function Win:UpdateFields()
 		GunCount = TurretLib:GetWeaponCount(Item.item)
 		Colour = TurretLib:GetWeaponColour(Item.item)
 		Coaxial = TurretLib:GetWeaponCoaxial(Item.item)
+		Size = TurretLib:GetWeaponSize(Item.item)
 	end
 
 	ColourDark:setHSV(0,0,0.3)
@@ -720,6 +733,7 @@ function Win:UpdateFields()
 	self.BtnTargeting.caption = "Targeting (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
 	self.BtnCoaxial.caption = "Coaxial (Cr. " .. toReadableValue(Config.CostCoaxial) .. ")"
 	self.BtnColour.caption = "Colour HSV (Cr. " .. toReadableValue(Config.CostColour) .. ")"
+	self.BtnSize.caption = "Scale (Cr. " .. toReadableValue(Config.CostSize) .. ")"
 
 	self.BtnHeat.caption = "Heat Sinks"
 	self.LblHeat.caption = HeatRate .. " Heat, " .. CoolRate .. " Cool"
@@ -771,6 +785,8 @@ function Win:UpdateFields()
 	self.NumColourSat.value = BackgroundColour.saturation
 	self.NumColourVal.value = BackgroundColour.value
 
+	self.NumSize.value = Size * 10
+
 	if(WeaponType == "beam") then
 		self.BtnRange.caption = "Lenses"
 		self.BtnDamage.caption = "Power Amplifiers"
@@ -786,6 +802,8 @@ function Win:UpdateFields()
 	self.BtnRange:show()
 	self.BtnFireRate:show()
 	self.BtnAccumEnergy:show()
+	self.BtnCoaxial:show()
+	self.BtnSize:show()
 
 	self.LblHeat:show()
 	self.LblBaseEnergy:show()
@@ -795,6 +813,9 @@ function Win:UpdateFields()
 	self.LblRange:show()
 	self.LblFireRate:show()
 	self.LblAccumEnergy:show()
+	self.LblCoaxial:show()
+
+	self.NumSize:show()
 
 	-- hide things that make no sense to edit for this turret.
 
@@ -977,6 +998,13 @@ function Win:OnUpdatePreviewColour()
 	)
 
 	self.BgColourFrame.backgroundColor = NewColour
+	return
+end
+
+function Win:OnUpdatePreviewSize()
+
+	-- lulz
+
 	return
 end
 
@@ -1325,6 +1353,30 @@ function Win:OnClickedBtnCoaxial()
 	return
 end
 
+
+function Win:OnClickedBtnSize()
+-- change turrent size
+	
+	local Mock, Real = Win:GetCurrentItems()
+	local PlayerRef = Player()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(PlayerRef.money < Config.CostSize) then
+		PrintError("You do not have enough credits")
+		return
+	end
+
+	TurretLib:SetWeaponSize(Real,(self.NumSize.value / 10))
+	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostSize)
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function TurretModdingUI_Update(NewCurrentIndex)
@@ -1346,6 +1398,7 @@ function TurretModdingUI_OnBinAdded(...) Win:OnBinAdded(...) end
 function TurretModdingUI_OnInvClicked(...) Win:OnInvClicked(...) end
 function TurretModdingUI_OnInvAdded(...) Win:OnInvAdded(...) end
 function TurretModdingUI_OnUpdatePreviewColour(...) Win:OnUpdatePreviewColour(...) end
+function TurretModdingUI_OnUpdatePreviewSize(...) Win:OnUpdatePreviewSize(...) end
 
 function TurretModdingUI_OnClickedBtnHeat(...) Win:OnClickedBtnHeat(...) end
 function TurretModdingUI_OnClickedBtnBaseEnergy(...) Win:OnClickedBtnBaseEnergy(...) end
@@ -1359,6 +1412,7 @@ function TurretModdingUI_OnClickedBtnEfficiency(...) Win:OnClickedBtnEfficiency(
 function TurretModdingUI_OnClickedBtnTargeting(...) Win:OnClickedBtnTargeting(...) end
 function TurretModdingUI_OnClickedBtnColour(...) Win:OnClickedBtnColour(...) end
 function TurretModdingUI_OnClickedBtnCoaxial(...) Win:OnClickedBtnCoaxial(...) end
+function TurretModdingUI_OnClickedBtnSize(...) Win:OnClickedBtnSize(...) end
 
 --------------------------------------------------------------------------------
 

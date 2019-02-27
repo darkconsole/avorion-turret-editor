@@ -53,9 +53,9 @@ callable(nil,"TurretLib_ServerCallback_UpdatePlayerUI")
 function This:UpdatePlayerInventory(PlayerID,Real,Index)
 -- push the command to update inventory to the server.
 
+Real:updateStaticStats()
+
 	if(onClient()) then
-		Real:updateStaticStats()
-		
 		return invokeServerFunction(
 			"TurretLib_ServerCallback_UpdatePlayerInventory",
 			PlayerID,
@@ -677,6 +677,8 @@ function This:ModWeaponSpeed(Item,Per)
 	return
 end
 
+--------
+
 function This:GetWeaponCoaxial(Item)
 --- get if this is a coaxial weapon.
 
@@ -709,6 +711,24 @@ function This:ToggleWeaponCoaxial(Item)
 -- set automatic targeting.
 
 	This:SetWeaponCoaxial(Item,(not Item.coaxial))
+
+	return
+end
+
+--------
+
+function This:GetWeaponSize(Item)
+--- get this turret's size
+
+	return Item.size
+end
+
+function This:SetWeaponSize(Item,Val)
+-- set this turret's size
+
+	This:BumpWeaponNameMark(Item)
+
+	Item.size = Val
 
 	return
 end

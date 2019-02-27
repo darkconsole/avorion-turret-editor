@@ -11,8 +11,11 @@ local Config = {
 	CostTargeting = 10000,
 	-- how many credits to charge to enable auto targeting.
 
-	CostCoaxial = 10000,
-	-- how many credits to charge to enable auto targeting.
+	CostCoaxial = 25000,
+	-- how many credits to charge to enable coaxial mounting and dmg.
+
+	CostSize = 1000,
+	-- how many credits to charge to change the turret visual size.
 
 	Colour1Mod = { Sat = 0.50, Val = 0.90 },
 	-- when the user picks a colour modify it by this amount to try and make
