@@ -14,17 +14,17 @@ package.path = package.path
 .. ";data/scripts/sector/?.lua"
 .. ";data/scripts/?.lua"
 
-require("galaxy")
-require("utility")
-require("faction")
-require("player")
-require("randomext")
-require("stringutility")
-require("callable")
+include("galaxy")
+include("utility")
+include("faction")
+include("player")
+include("randomext")
+include("stringutility")
+include("callable")
 
 local This = {}
-local SellableInventoryItem = require("sellableinventoryitem")
-local TurretLib = require("mods.DccTurretEditor.Common.TurretLib")
+local SellableInventoryItem = include("sellableinventoryitem")
+local TurretLib = include("mods/DccTurretEditor/Common/TurretLib")
 local Config = nil
 
 function PrintServer(TheMessage)
@@ -91,7 +91,6 @@ function FramedRect(Container,X,Y,Cols,Rows,Padding)
 	return Rect(TopLeft,BottomRight)
 end
 
-PrintServer("TURRET MODDING UI LOAD")
 --------------------------------------------------------------------------------
 
 local Win = {
@@ -1463,18 +1462,18 @@ end
 
 --------------------------------------------------------------------------------
 
-function PullConfigFromServer(ToPlayer,InputConfig)
+function TurretLib_PullConfigFromServer(ToPlayer,InputConfig)
 -- handle pulling the config from the server.
 
 	if(onServer()) then
 		-- when this function runs server side we need to load the config
 		-- and send it back to the client.
 
-		local InputConfig = require("mods.DccTurretEditor.Common.ConfigLib")
-		print("[DccTurretEditor] Sending Config To Client")
+		local InputConfig = include("mods/DccTurretEditor/Common/ConfigLib")
+		print("[DccTurretEditor] Sending Config To Client " .. Player(ToPlayer).index)
 		invokeClientFunction(
 			Player(ToPlayer),
-			"PullConfigFromServer",
+			"TurretLib_PullConfigFromServer",
 			ToPlayer,
 			InputConfig
 		)
@@ -1487,8 +1486,6 @@ function PullConfigFromServer(ToPlayer,InputConfig)
 	end
 
 end
-
-callable(nil,"PullConfigFromServer")
 
 function initialize()
 -- script bootstrapping.
@@ -1504,7 +1501,7 @@ function initialize()
 
 	if(onClient()) then
 		print("[DccTurretEditor] Asking Server For Config")
-		invokeServerFunction("PullConfigFromServer",Player().index,nil)
+		invokeServerFunction("TurretLib_PullConfigFromServer",Player().index,nil)
 	end
 
 	return
@@ -1520,4 +1517,4 @@ function initUI()
 	return
 end
 
-
+callable(nil,"TurretLib_PullConfigFromServer")

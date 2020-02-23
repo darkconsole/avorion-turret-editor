@@ -24,8 +24,8 @@ local This = {
 		PrintMessage("Loading ConfigDefault.lua")
 
 		local IsOK, Input = pcall(
-			require,
-			"mods.DccTurretEditor.ConfigDefault"
+			include,
+			"mods/DccTurretEditor/ConfigDefault"
 		)
 
 		if(not IsOK) then
@@ -56,8 +56,8 @@ local This = {
 		PrintMessage("Loading Config.lua")
 
 		local IsOK, Input = pcall(
-			require,
-			"mods.DccTurretEditor.Config"
+			include,
+			"mods/DccTurretEditor/Config"
 		)
 
 		if(not IsOK) then

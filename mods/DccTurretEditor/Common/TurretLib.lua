@@ -1,6 +1,6 @@
 
 local This = {};
-local Config = require("mods.DccTurretEditor.Common.ConfigLib")
+local Config = include("mods/DccTurretEditor/Common/ConfigLib")
 
 --------------------------------------------------------------------------------
 -- these things are used by the ui to perform authoritive tasks on the server
