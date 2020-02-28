@@ -217,6 +217,8 @@ function Win:BuildUI()
 
 	-- create the list of things in your inventory
 
+	--self.Inv = self.Window:createInventorySelection(Pane.bottom,16)
+	-- remove() still does not work on InventeorySelection()
 	self.Inv = self.Window:createSelection(Pane.bottom,16)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
@@ -309,6 +311,25 @@ function Win:BuildUI()
 
 	--------
 
+	self.BtnEfficiency = self.Window:createButton(
+		Rect(),
+		"Phase Filters",
+		"TurretModdingUI_OnClickedBtnEfficiency"
+	)
+	self.BtnEfficiency.textSize = FontSize3
+	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,5,1,Cols,Rows)
+	self.BtnEfficiency.tooltip = "Increase the efficiency of mining and scav lasers."
+
+	self.LblEfficiency = self.Window:createLabel(
+		Rect(),
+		"$EFFICIENCY",
+		FontSize3
+	)
+	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,5,2,Cols,Rows)
+	self.LblEfficiency.centered = true
+
+	--------
+
 	self.BtnSpeed = self.Window:createButton(
 		Rect(),
 		"Drive Motors",
@@ -385,22 +406,22 @@ function Win:BuildUI()
 
 	--------
 
-	self.BtnEfficiency = self.Window:createButton(
+	self.BtnMounting = self.Window:createButton(
 		Rect(),
-		"Phase Filters",
-		"TurretModdingUI_OnClickedBtnEfficiency"
+		"Reinforced Mount",
+		"TurretModdingUI_OnClickedBtnMounting"
 	)
-	self.BtnEfficiency.textSize = FontSize3
-	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,5,1,Cols,Rows)
-	self.BtnEfficiency.tooltip = "Increase the efficiency of mining and scav lasers."
+	self.BtnMounting.textSize = FontSize3
+	self.BtnMounting.rect = FramedRect(self.UpgradeFrame,5,3,Cols,Rows)
+	self.BtnMounting.tooltip = "Reduces the slot cost.\nRequires 5 EXCEPTIONAL or better turrets."
 
-	self.LblEfficiency = self.Window:createLabel(
+	self.LblMounting = self.Window:createLabel(
 		Rect(),
-		"$EFFICIENCY",
+		"$MOUNTING",
 		FontSize3
 	)
-	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,5,2,Cols,Rows)
-	self.LblEfficiency.centered = true
+	self.LblMounting.rect = FramedRect(self.UpgradeFrame,5,4,Cols,Rows)
+	self.LblMounting.centered = true
 
 	--------
 
@@ -595,6 +616,41 @@ end
 
 --------
 
+function Win:GetBinCount()
+-- count how many objects we have in the bin.
+
+	local Count = 0
+	local ItemVec
+	local Item
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		if(Item ~= nil) then
+			Count = Count + 1
+		end
+	end
+
+	return Count
+end
+
+function Win:GetBinLowestRarity()
+-- get the lowest rarity value current in the bin.
+
+	local RarityLowest = 9001
+	local RarityThis = 0
+	local ItemVec
+	local Item
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		RarityThis = TurretLib:GetWeaponRarityValue(Item.item)
+
+		if(RarityThis < RarityLowest) then
+			RarityLowest = RarityThis
+		end
+	end
+
+	return RarityLowest
+end
+
 function Win:CalculateBinItems()
 -- calculate the bin items buff value.
 
@@ -703,6 +759,8 @@ function Win:UpdateFields()
 	local Colour = Color()
 	local Coaxial = false
 	local Size = 0
+	local Slots = 0
+	local MountingEnable = false
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
@@ -722,6 +780,11 @@ function Win:UpdateFields()
 		Colour = TurretLib:GetWeaponColour(Item.item)
 		Coaxial = TurretLib:GetWeaponCoaxial(Item.item)
 		Size = TurretLib:GetWeaponSize(Item.item)
+		Slots = TurretLib:GetWeaponSlots(Item.item)
+
+		if(Slots > 1 and self:GetBinCount() == 5 and self:GetBinLowestRarity() >= 4) then
+			MountingEnable = true
+		end
 	end
 
 	ColourDark:setHSV(0,0,0.3)
@@ -769,6 +832,10 @@ function Win:UpdateFields()
 	self.BtnEfficiency.caption = "Phase Filters"
 	self.LblEfficiency.caption = (Efficiency * 100) .. "%"
 	self.LblEfficiency.color = ColourLight
+
+	self.BtnMounting.caption = "Reinforced Mount"
+	self.BtnMounting.active = MountingEnable
+	self.LblMounting.caption = Slots
 
 	if(Targeting) then self.LblTargeting.caption = "YES"
 	else self.LblTargeting.caption = "NO"
@@ -937,7 +1004,7 @@ function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	end
 
 	self.Bin:add(Item)
-	print("[DccTurretEditor] Added to Bin: " .. Item.item.weaponName)
+	print("[DccTurretEditor] Added to Bin: " .. Item.item.weaponName .. " " .. FX .. " " .. FY)
 
 	--------
 
@@ -947,6 +1014,7 @@ function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 		self.Inv:remove(FromVec)
 	end
 
+	self:UpdateFields()
 	self:UpdateBinLabel()
 	return
 end
@@ -979,6 +1047,7 @@ function Win:OnInvAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 		self.Bin:remove(FromVec)
 	end
 
+	self:UpdateFields()
 	self:UpdateBinLabel()
 	return
 end
@@ -1276,6 +1345,41 @@ function Win:OnClickedBtnEfficiency()
 	return
 end
 
+function Win:OnClickedBtnMounting()
+-- raise rifficiency
+
+	local BinCount = Win:GetBinCount()
+	local BinRarity = Win:GetBinLowestRarity()
+	local Mock, Real = Win:GetCurrentItems()
+	local CurrentValue = TurretLib:GetWeaponSlots(Real)
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(CurrentValue <= 1) then
+		PrintError("This turret is already at minimum slot use.")
+		return
+	end
+
+	if(BinCount < 5) then
+		PrintError("Requires 5 exceptional turrets to be scrapped.")
+		return
+	end
+
+	if(BinRarity < 4) then
+		PrintError("Requires 5 exceptional turrets to be scrapped.")
+		return
+	end
+
+	TurretLib:SetWeaponSlots(Real,(CurrentValue - 1))
+
+	self:ConsumeBinItems()
+	self:UpdateItems(Mock,Real)
+	return
+end
+
 function Win:OnClickedBtnTargeting()
 -- toggle targeting
 
@@ -1352,7 +1456,6 @@ function Win:OnClickedBtnCoaxial()
 	return
 end
 
-
 function Win:OnClickedBtnSize()
 -- change turrent size
 	
@@ -1408,10 +1511,12 @@ function TurretModdingUI_OnClickedBtnRange(...) Win:OnClickedBtnRange(...) end
 function TurretModdingUI_OnClickedBtnDamage(...) Win:OnClickedBtnDamage(...) end
 function TurretModdingUI_OnClickedBtnAccuracy(...) Win:OnClickedBtnAccuracy(...) end
 function TurretModdingUI_OnClickedBtnEfficiency(...) Win:OnClickedBtnEfficiency(...) end
+function TurretModdingUI_OnClickedBtnMounting(...) Win:OnClickedBtnMounting(...) end
 function TurretModdingUI_OnClickedBtnTargeting(...) Win:OnClickedBtnTargeting(...) end
 function TurretModdingUI_OnClickedBtnColour(...) Win:OnClickedBtnColour(...) end
 function TurretModdingUI_OnClickedBtnCoaxial(...) Win:OnClickedBtnCoaxial(...) end
 function TurretModdingUI_OnClickedBtnSize(...) Win:OnClickedBtnSize(...) end
+function TurretModdingUI_OnClickedBtnMounting(...) Win:OnClickedBtnMounting(...) end
 
 --------------------------------------------------------------------------------
 

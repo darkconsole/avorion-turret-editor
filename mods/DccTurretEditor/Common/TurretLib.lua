@@ -718,7 +718,7 @@ end
 --------
 
 function This:GetWeaponSize(Item)
---- get this turret's size
+-- get this turret's size
 
 	return Item.size
 end
@@ -732,6 +732,31 @@ function This:SetWeaponSize(Item,Val)
 
 	return
 end
+
+--------
+
+function This:GetWeaponSlots(Item)
+-- get this turret's size
+	
+		return Item.slots
+	end
+	
+function This:SetWeaponSlots(Item,Val)
+-- set this turret's size
+
+	if(Val < 1) then
+		-- we can totally make 0 slot turrets and it will let us mount as
+		-- many as we want lol.
+		Val = 1
+	end
+
+	This:BumpWeaponNameMark(Item)
+
+	Item.slots = Val
+
+	return
+end
+	
 
 --------
 
