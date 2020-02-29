@@ -616,6 +616,22 @@ end
 
 --------
 
+function Win:GetItemCount()
+-- count how many objects we have in the item slot.
+
+	local Count = 0
+	local ItemVec
+	local Item
+
+	for ItemVec, Item in pairs(self.Item:getItems()) do
+		if(Item ~= nil) then
+			Count = Count + 1
+		end
+	end
+
+	return Count
+end
+
 function Win:GetBinCount()
 -- count how many objects we have in the bin.
 
@@ -940,7 +956,19 @@ end
 --------------------------------------------------------------------------------
 
 function Win:OnItemClicked(SelectID, FX, FY, Item, Button)
+
+	local FromVec = ivec2(FX,FY)
 	self.CurrentSelectID = SelectID
+
+	print("[DccTurretEditor:OnItemClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+
+	if(Button == 3) then
+		self.Inv:add(Item,0)
+		self.Item:remove(FromVec)
+	end
+
+	self:UpdateFields()
+	self:UpdateBinLabel()
 	return
 end
 
@@ -986,6 +1014,18 @@ end
 
 function Win:OnBinClicked(SelectID, FX, FY, Item, Button)
 	self.CurrentSelectID = SelectID
+
+	local FromVec = ivec2(FX,FY)
+
+	print("[DccTurretEditor:OnBinClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+
+	if(Button == 3) then
+		self.Inv:add(Item,0)
+		self.Bin:remove(FromVec)
+	end
+
+	self:UpdateFields()
+	self:UpdateBinLabel()
 	return
 end
 
@@ -1023,7 +1063,26 @@ end
 ----------------
 
 function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
+	
+	local ItemCount = self:GetItemCount()
+	local BinCount = self:GetBinCount()
+	local FromVec = ivec2(FX,FY)
 	self.CurrentSelectID = SelectID
+
+	print("[DccTurretEditor:OnInvClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+
+	if(Button == 3) then
+		if(ItemCount == 0) then
+			self.Item:add(Item,0)
+			self.Inv:remove(FromVec)
+		elseif(BinCount < 5) then
+			self.Bin:add(Item,0)
+			self.Inv:remove(FromVec)
+		end
+	end
+
+	self:UpdateFields()
+	self:UpdateBinLabel()
 	return
 end
 
