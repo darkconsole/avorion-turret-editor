@@ -128,7 +128,7 @@ function Win:OnInit()
 	self.Size = vec2((self.Res.x * 0.75),(self.Res.y * 0.75))
 	self.UI = ScriptUI(Player().craftIndex)
 
-	print("[TurretModding:Win.OnInit] Resolution: " .. self.Res.x .. " " .. self.Res.y)
+	print("[TurretModding:OnInit] Resolution: " .. self.Res.x .. " " .. self.Res.y)
 
 	self.Window = self.UI:createWindow(Rect(
 		(self.Res * 0.5 - self.Size * 0.5),
@@ -221,7 +221,7 @@ function Win:BuildUI()
 
 	--self.Inv = self.Window:createInventorySelection(Pane.bottom,24)
 	-- remove() still does not work on InventeorySelection()
-	self.Inv = self.Window:createSelection(Pane.bottom,24)
+	self.Inv = self.Window:createInventorySelection(Pane.bottom,24)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
 	self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
@@ -519,7 +519,15 @@ function Win:PopulateInventory(NewCurrentIndex)
 	local Count = 0
 	local Item = nil
 
-	self.Inv:clear()
+	-- clear the inventory inventory beacuse doing just clear on the root
+	-- of the element did not seem to work right correctly, especally if
+	-- there was filter text. strange things would happen and you'd see
+	-- dups, or the sorting would just make no sense, or the text you filter
+	-- by would not even be what is getting highlighted. even calling the
+	-- root clear after the selection clear is fuckery, but this is fine.
+
+	--self.Inv.filterTextBox:clear()
+	self.Inv.selection:clear()
 
 	-- throw everything that makes sense into a table so we can sort it.
 
@@ -533,6 +541,7 @@ function Win:PopulateInventory(NewCurrentIndex)
 
 	-- sort starred items to the front of the list, trash to the end.
 
+	--[[
 	table.sort(ItemList,function(a,b)
 		if(a.item.favorite and not b.item.favorite) then
 			return true
@@ -544,9 +553,12 @@ function Win:PopulateInventory(NewCurrentIndex)
 			end
 		end
 	end)
+	--]]
 
 	-- now create items in our dialog to represent the inventory items.
 	-- are are unstacking items for this.
+
+	-- self.Inv:fill(Player().index, InventoryItemType.Turret)
 
 	for Iter, Thing in pairs(ItemList) do
 		Count = Thing.amount
@@ -1069,7 +1081,8 @@ function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 
 	if(self.CurrentSelectID == self.Item.index) then
 		self.Item:remove(FromVec)
-	elseif(self.CurrentSelectID == self.Inv.index) then
+	elseif(self.CurrentSelectID == self.Inv.selection.index) then
+		print("[DccTurretModding:OnBinAdded] Remove from INV")
 		self.Inv:remove(FromVec)
 	end
 
@@ -1088,7 +1101,7 @@ function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
 	local FromVec = ivec2(FX,FY)
 	self.CurrentSelectID = SelectID
 
-	print("[DccTurretEditor:OnInvClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+	print("[DccTurretEditor:OnInvClicked] SelectID " .. SelectID .. " Click " .. Item.item.weaponName .. " Button " .. Button)
 
 	if(Button == 3) then
 		if(ItemCount == 0) then
@@ -1614,7 +1627,7 @@ end
 function onCloseWindow()
 -- clear out the dialog when closed.
 
-	Win.Inv:clear()
+	Win.Inv.selection:clear()
 	Win.Bin:clear()
 	Win.Item:clear()
 
@@ -1624,6 +1637,8 @@ end
 
 function onShowWindow()
 -- reset the dialog when it is opened.
+
+	print("[DccTurretModding] OnShowWindow")
 
 	Win.Item:clear()
 	Win.Item:addEmpty()
@@ -1635,8 +1650,9 @@ function onShowWindow()
 	Win.Bin:addEmpty()
 	Win.Bin:addEmpty()
 
-	Win.Inv:clear()
-	Win.Inv:addEmpty()
+	--Win.Inv.filterTextBox:clear()
+	--Win.Inv.selection:clear()
+	--Win.Inv.selection:addEmpty()
 
 	Win:UpdateFields()
 	Win:PopulateInventory()

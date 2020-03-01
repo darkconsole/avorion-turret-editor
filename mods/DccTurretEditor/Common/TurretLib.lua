@@ -53,7 +53,7 @@ callable(nil,"TurretLib_ServerCallback_UpdatePlayerUI")
 function This:UpdatePlayerInventory(PlayerID,Real,Index)
 -- push the command to update inventory to the server.
 
-Real:updateStaticStats()
+	Real:updateStaticStats()
 
 	if(onClient()) then
 		return invokeServerFunction(
@@ -149,7 +149,7 @@ function This:GetWeaponType(Item)
 		else
 			return "beam"
 		end
-		
+
 	end
 
 	return
