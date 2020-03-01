@@ -814,6 +814,7 @@ function Win:UpdateFields()
 	-- fill in all the values.
 
 	self.BtnTargeting.caption = "Targeting (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
+	self.BtnTargeting.tooltip = "Toggle Automatic Targeting.\n(Does not consume turrets)"
 	self.BtnCoaxial.caption = "Coaxial (Cr. " .. toReadableValue(Config.CostCoaxial) .. ")"
 	self.BtnColour.caption = "Colour HSV (Cr. " .. toReadableValue(Config.CostColour) .. ")"
 	self.BtnSize.caption = "Scale (Cr. " .. toReadableValue(Config.CostSize) .. ")"

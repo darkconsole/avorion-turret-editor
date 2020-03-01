@@ -229,7 +229,7 @@ function This:FixDefaultTargetingNerf(Item)
 
 			Mark = string.match(Weap.name," Mk (%d+)$")
 			if(Mark == nil) then
-				print("[DccTurretLib] un-nerfing " .. Weap.name .. " on " .. Item.weaponName)
+				print("[DccTurretLib:FixDefaultTargetingNerf] un-nerfing " .. Weap.name .. " on " .. Item.weaponName)
 
 				-- fix base damage.
 				Weap.damage = Weap.damage * Config.FixDefaultTargetingNerf
