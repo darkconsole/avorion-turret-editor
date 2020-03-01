@@ -125,8 +125,10 @@ local Win = {
 function Win:OnInit()
 
 	self.Res = getResolution()
-	self.Size = vec2(1200,700)
+	self.Size = vec2((self.Res.x * 0.75),(self.Res.y * 0.75))
 	self.UI = ScriptUI(Player().craftIndex)
+
+	print("[TurretModding:Win.OnInit] Resolution: " .. self.Res.x .. " " .. self.Res.y)
 
 	self.Window = self.UI:createWindow(Rect(
 		(self.Res * 0.5 - self.Size * 0.5),
@@ -217,9 +219,9 @@ function Win:BuildUI()
 
 	-- create the list of things in your inventory
 
-	--self.Inv = self.Window:createInventorySelection(Pane.bottom,16)
+	--self.Inv = self.Window:createInventorySelection(Pane.bottom,24)
 	-- remove() still does not work on InventeorySelection()
-	self.Inv = self.Window:createSelection(Pane.bottom,16)
+	self.Inv = self.Window:createSelection(Pane.bottom,24)
 	self.Inv.dropIntoEnabled = 1
 	self.Inv.entriesSelectable = 0
 	self.Inv.onClickedFunction = "TurretModdingUI_OnInvClicked"
@@ -470,7 +472,10 @@ function Win:BuildUI()
 
 	self.NumSize = self.Window:createSlider(Rect(),5,30,25,"","TurretModdingUI_OnUpdatePreviewSize")
 	self.NumSize.rect = FramedRect(self.UpgradeFrame,3,7,Cols,Rows,5)
-	self.NumSize.showValue = false
+	self.NumSize.showValue = true
+	self.NumSize.min = 0.5
+	self.NumSize.max = 3.0
+	self.NumSize.center = vec2(self.NumSize.center.x,(self.NumSize.center.y - 6))
 
 	--------
 
@@ -488,15 +493,18 @@ function Win:BuildUI()
 
 	self.NumColourHue = self.Window:createSlider(Rect(),0,360,18,"","TurretModdingUI_OnUpdatePreviewColour")
 	self.NumColourHue.rect = FramedRect(self.UpgradeFrame,((4*3)-2),7,(Cols*3),Rows,5)
-	self.NumColourHue.showValue = false
+	self.NumColourHue.showValue = true
+	self.NumColourHue.center = vec2(self.NumColourHue.center.x,(self.NumColourHue.center.y - 6))
 
 	self.NumColourSat = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
 	self.NumColourSat.rect = FramedRect(self.UpgradeFrame,((4*3)-1),7,(Cols*3),Rows,5)
-	self.NumColourSat.showValue = false
+	self.NumColourSat.showValue = true
+	self.NumColourSat.center = vec2(self.NumColourSat.center.x,(self.NumColourSat.center.y - 6))
 
 	self.NumColourVal = self.Window:createSlider(Rect(),0,1,10,"","TurretModdingUI_OnUpdatePreviewColour")
 	self.NumColourVal.rect = FramedRect(self.UpgradeFrame,((4*3)-0),7,(Cols*3),Rows,5)
-	self.NumColourVal.showValue = false
+	self.NumColourVal.showValue = true
+	self.NumColourVal.center = vec2(self.NumColourVal.center.x,(self.NumColourVal.center.y - 6))
 
 	return
 end
@@ -878,7 +886,7 @@ function Win:UpdateFields()
 	self.NumColourSat.value = BackgroundColour.saturation
 	self.NumColourVal.value = BackgroundColour.value
 
-	self.NumSize.value = Size * 10
+	self.NumSize.value = Size
 
 	if(WeaponType == "beam") then
 		self.BtnRange.caption = "Lenses"
@@ -1542,7 +1550,7 @@ function Win:OnClickedBtnSize()
 		return
 	end
 
-	TurretLib:SetWeaponSize(Real,(self.NumSize.value / 10))
+	TurretLib:SetWeaponSize(Real,(self.NumSize.value))
 	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostSize)
 
 	self:UpdateItems(Mock,Real)
