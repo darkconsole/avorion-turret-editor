@@ -139,11 +139,17 @@ function This:GetWeaponType(Item)
 	local WeapList = {Item:getWeapons()}
 
 	for WeapIter,Weap in pairs(WeapList) do
+
+		if(Weap.appearance == WeaponAppearance.RailGun) then
+			return "projectile"
+		end
+
 		if(Weap.isProjectile) then
 			return "projectile"
 		else
 			return "beam"
 		end
+		
 	end
 
 	return
