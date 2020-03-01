@@ -191,6 +191,67 @@ function This:GetWeaponCount(Item)
 	return Count
 end
 
+function This:IsDefaultTargetingNerfFixable(Item)
+-- determine if this turret should be allowed to have its damage unnerfed.
+
+	local Result = false
+	local WeapList = {Item:getWeapons()}
+	local Weap = nil
+
+	if(Item.automatic) then
+		if(Config.FixDefaultTargetingNerf ~= 0.0) then
+			for WeapIter,Weap in pairs(WeapList) do
+				Mark = string.match(Weap.name," Mk (%d+)$")
+				if(Mark == nil) then
+					Result = true
+				end
+			end
+		end
+	end
+
+	if(Result == true) then
+		print("[DccTurretLib:IsDefaultTargetingNerfFixable] " .. Item.weaponName .. " eligable for getting un-nerfed")
+	end
+
+	return Result
+end
+
+function This:FixDefaultTargetingNerf(Item)
+-- determine if this turret should be allowed to have its damage unnerfed.
+
+	local WeapList = {Item:getWeapons()}
+	local Weap = nil
+	local WeapIter = nil
+	Item:clearWeapons()
+
+	if(Config.FixDefaultTargetingNerf ~= 0.0) then
+		for WeapIter,Weap in pairs(WeapList) do
+
+			Mark = string.match(Weap.name," Mk (%d+)$")
+			if(Mark == nil) then
+				print("[DccTurretLib] un-nerfing " .. Weap.name .. " on " .. Item.weaponName)
+
+				-- fix base damage.
+				Weap.damage = Weap.damage * Config.FixDefaultTargetingNerf
+
+				-- fix shield turrets.
+				if Weap.shieldRepair ~= 0. then
+					Weap.shieldRepair = Weap.shieldRepair * Config.FixDefaultTargetingNerf
+				end
+	
+				-- fix hull turrets.
+				if Weap.hullRepair ~= 0.0 then
+					Weap.hullRepair = Weap.hullRepair * Config.FixDefaultTargetingNerf
+				end
+			end
+	
+			Item:addWeapon(Weap)
+		end
+	end
+
+	return
+end
+
 --------
 
 function This:GetWeaponFireRate(Item)
@@ -738,22 +799,21 @@ end
 function This:GetWeaponSlots(Item)
 -- get this turret's size
 	
-		return Item.slots
-	end
+	return Item.slots
+end
 	
 function This:SetWeaponSlots(Item,Val)
 -- set this turret's size
 
-	if(Val < 1) then
+	if(Val < Config.TurretSlotMin) then
 		-- we can totally make 0 slot turrets and it will let us mount as
 		-- many as we want lol.
-		Val = 1
+		Val = Config.TurretSlotMin
 	end
 
 	This:BumpWeaponNameMark(Item)
 
 	Item.slots = Val
-
 	return
 end
 	
@@ -769,6 +829,14 @@ end
 function This:SetWeaponTargeting(Item,Val)
 -- set automatic targeting.
 
+	-- if the turret has targeting, and we want to turn it off, and it is the first time
+	-- the turret has been edited, then we are going to undo the damage reduction they
+	-- gave automatics by default.
+
+	if(Val == false and This:IsDefaultTargetingNerfFixable(Item)) then
+		This:FixDefaultTargetingNerf(Item)
+	end
+
 	This:BumpWeaponNameMark(Item)
 
 	Item.automatic = Val
@@ -778,9 +846,7 @@ end
 function This:ToggleWeaponTargeting(Item)
 -- set automatic targeting.
 
-	This:BumpWeaponNameMark(Item)
-
-	Item.automatic = not Item.automatic
+	This:SetWeaponTargeting(Item,(not Item.automatic))
 	return
 end
 
@@ -793,7 +859,7 @@ function This:GetWeaponCrew(Item)
 -- get required crew. if its a civil cannon it returns the miner count and if
 -- an offensive weapon it returns the gunner count.
 
-
+	-- todo
 
 	return
 end
@@ -801,6 +867,8 @@ end
 function This:SetWeaponCrew(Item,Val)
 -- set required crew. if a civil cannon it sets the miner count and if an
 -- offensive weapon it sets the gunner count.
+
+	-- todo
 
 	return
 end

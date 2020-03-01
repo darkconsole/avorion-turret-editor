@@ -30,6 +30,18 @@ local Config = {
 	-- when buffing values downwards its actually impossible to hit zero with
 	-- percentages so when numbers get small we will include a flat value.
 
+	TurretSlotMin = 1,
+	-- setting this to zero allows turrets to be improved all the way to require
+	-- no slots which the game then lets us put infinite turrets on.
+
+	FixDefaultTargetingNerf = 2.0,
+	-- by default the game lowers the damage of turrets that come with targeting
+	-- on them by half [lib/turretgenerator.lua around line 529 as of 2020-03-01]
+	-- so if this is not zero, we will correct that when you take the targeting
+	-- off. currently, that must be the very first thing you do because we're
+	-- checking if the turret has been modded before so you cant just drive it up
+	-- by going on off on off on off.
+
 	Debug = true
 
 };

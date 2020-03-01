@@ -777,6 +777,7 @@ function Win:UpdateFields()
 	local Size = 0
 	local Slots = 0
 	local MountingEnable = false
+	local FixTargetingNerf = false
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
@@ -798,8 +799,12 @@ function Win:UpdateFields()
 		Size = TurretLib:GetWeaponSize(Item.item)
 		Slots = TurretLib:GetWeaponSlots(Item.item)
 
-		if(Slots > 1 and self:GetBinCount() == 5 and self:GetBinLowestRarity() >= 4) then
+		if(Slots > Config.TurretSlotMin and self:GetBinCount() == 5 and self:GetBinLowestRarity() >= 4) then
 			MountingEnable = true
+		end
+
+		if(TurretLib:IsDefaultTargetingNerfFixable(Real)) then
+			FixTargetingNerf = true
 		end
 	end
 
@@ -852,6 +857,11 @@ function Win:UpdateFields()
 	self.BtnMounting.caption = "Reinforced Mount"
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots
+
+	if(FixTargetingNerf) then
+		self.BtnTargeting.caption = "Fix Auto Nerf (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
+		self.BtnTargeting.tooltip = "Fixes automatic targeting nerf by removing targeting and fixing the damage values. You must then re-apply targeting afterwards."
+	end
 
 	if(Targeting) then self.LblTargeting.caption = "YES"
 	else self.LblTargeting.caption = "NO"
@@ -1405,7 +1415,7 @@ function Win:OnClickedBtnEfficiency()
 end
 
 function Win:OnClickedBtnMounting()
--- raise rifficiency
+-- lower mounting cost
 
 	local BinCount = Win:GetBinCount()
 	local BinRarity = Win:GetBinLowestRarity()

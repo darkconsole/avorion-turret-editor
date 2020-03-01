@@ -17,6 +17,8 @@ local This = {
 	Colour1Mod = nil,
 	Colour2Mod = nil,
 	NearZeroFloat = 0.0,
+	TurretSlotMin = 0,
+	FixDefaultTargetingNerf = 0.0,
 	Debug = false,
 
 	LoadDefault = function(self)
@@ -43,6 +45,8 @@ local This = {
 		self.Colour1Mod = Input.Colour1Mod
 		self.Colour2Mod = Input.Colour2Mod
 		self.NearZeroFloat = Input.NearZeroFloat
+		self.TurretSlotMin = Input.TurretSlotMin
+		self.FixDefaultTargetingNerf = Input.FixDefaultTargetingNerf
 		self.Debug = Input.Debug
 
 		--------
@@ -93,6 +97,22 @@ local This = {
 
 		if(Input.NearZeroFloat ~= nil)
 		then self.NearZeroFloat = Input.NearZeroFloat end
+
+		if(Input.TurretSlotMin ~= nil)
+		then self.TurretSlotMin = Input.TurretSlotMin end
+
+		if(Input.FixDefaultTargetingNerf ~= nil)
+		then self.FixDefaultTargetingNerf = Input.FixDefaultTargetingNerf end
+
+		--------
+
+		-- some value sanity.
+
+		if(self.TurretSlotMin < 0)
+		then self.TurretSlotMin = 0 end
+
+		if(self.FixDefaultTargetingNerf < 0.0)
+		then self.FixDefaultTargetingNerf = 0.0 end
 
 		--------
 
