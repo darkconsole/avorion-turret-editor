@@ -955,17 +955,19 @@ function This:GetWeaponCrew(Item)
 -- get required crew. if its a civil cannon it returns the miner count and if
 -- an offensive weapon it returns the gunner count.
 
-	-- todo
-
-	return
+	return Item.crew.gunners
 end
 
 function This:SetWeaponCrew(Item,Val)
 -- set required crew. if a civil cannon it sets the miner count and if an
 -- offensive weapon it sets the gunner count.
 
-	-- todo
+	local Gunners = Crew()
+	Gunners:add(Val,CrewMan(CrewProfessionType.Gunner))
 
+	This:BumpWeaponNameMark(Item)
+
+	Item.crew = Gunners
 	return
 end
 
