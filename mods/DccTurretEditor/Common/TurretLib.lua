@@ -155,18 +155,29 @@ function This:GetWeaponType(Item)
 	return
 end
 
+function This:GetWeaponRealType(Item)
+-- returns "projectile" or "beam"
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList) do
+		return Weap.appearance
+	end
+
+	return
+end
+
 function This:BumpWeaponNameMark(Item)
 -- bump the mark names on weapons. we do this mainly to trick the game into
 -- never stacking the items.
 
 	local WeapList = {Item:getWeapons()}
-	local Value = 0
 	local Mark
 	Item:clearWeapons()
 
 	for WeapIter,Weap in pairs(WeapList) do
 
-		print("[DccTurretEditor] Weapon Name: " .. Weap.name .. ", Prefix: " .. Weap.prefix)
+		print("[DccTurretLib:BumpWeaponNameMark] Old: " .. Weap.name .. ", Prefix: " .. Weap.prefix)
 
 		Mark = string.match(Weap.name," Mk (%d+)$")
 		if(Mark == nil) then
@@ -184,6 +195,25 @@ function This:BumpWeaponNameMark(Item)
 	return
 end
 
+function This:RenameWeapon(Item,ToFind,ToReplace)
+-- do a find replace on weapon names.
+
+	local WeapList = {Item:getWeapons()}
+	local Count
+	Item:clearWeapons()
+
+	ToFind = string.gsub(ToFind,"%-","%%-")
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Weap.name,Count = string.gsub(Weap.name,ToFind,ToReplace)
+		Weap.prefix = string.gsub(Weap.prefix,ToFind,ToReplace)
+		print("[DccTurretLib:RenameWeapon] Old: " .. Weap.name .. " (" .. Weap.prefix .. "), ToFind: " .. ToFind .. ", ToReplace: " .. ToReplace .. ", " .. Count)
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
 function This:GetWeaponCount(Item)
 -- get how many guns are on this turret.
 
@@ -195,6 +225,23 @@ function This:GetWeaponCount(Item)
 	end
 
 	return Count
+end
+
+function This:HasBeenModified(Item)
+-- determine if we have edited a turret before.
+
+	local WeapList = {Item:getWeapons()}
+	local Weap
+	local Mark
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Mark = string.match(Weap.name," Mk (%d+)$")
+		if(Mark == nil) then
+			return false
+		else
+			return true
+		end
+	end
 end
 
 function This:IsDefaultTargetingNerfFixable(Item)
@@ -275,8 +322,6 @@ end
 function This:ModWeaponFireRate(Item,Per)
 -- modify the fire rate by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
 	Item:clearWeapons()
@@ -288,8 +333,6 @@ function This:ModWeaponFireRate(Item,Per)
 			Value = 0
 		end
 
-		print("[DccTurretEditor] Fire Rate: " .. Weap.fireRate .. " " .. Value)
-
 		Weap.fireRate = Value
 		Item:addWeapon(Weap)
 	end
@@ -300,8 +343,6 @@ end
 function This:SetWeaponFireRate(Item,Value)
 -- modify the fire rate by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
 
@@ -309,8 +350,6 @@ function This:SetWeaponFireRate(Item,Value)
 		if(Value < 0) then
 			Value = 0
 		end
-
-		print("[DccTurretEditor] Fire Rate: " .. Weap.fireRate .. " " .. Value)
 
 		Weap.fireRate = Value
 		Item:addWeapon(Weap)
@@ -337,8 +376,6 @@ end
 function This:ModWeaponRange(Item,Per)
 -- modify the range by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
 	Item:clearWeapons()
@@ -360,7 +397,6 @@ end
 function This:SetWeaponRange(Item,Value)
 -- modify the range by a percent
 
-	This:BumpWeaponNameMark(Item)
 	Value = Value * 100
 
 	local WeapList = {Item:getWeapons()}
@@ -396,8 +432,6 @@ end
 function This:ModWeaponDamage(Item,Per)
 -- modify the range by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
 	Item:clearWeapons()
@@ -409,10 +443,6 @@ function This:ModWeaponDamage(Item,Per)
 			Value = 0
 		end
 
-		print(
-			"[DccTurretEditor] Weapon Dmg: " .. Weap.damage .. " " .. Value
-		)
-
 		Weap.damage = Value
 		Item:addWeapon(Weap)
 	end
@@ -423,8 +453,6 @@ end
 function This:SetWeaponDamage(Item,Value)
 -- modify the range by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
 
@@ -432,10 +460,6 @@ function This:SetWeaponDamage(Item,Value)
 		if(Value < 0) then
 			Value = 0
 		end
-
-		print(
-			"[DccTurretEditor] Weapon Dmg: " .. Weap.damage .. " " .. Value
-		)
 
 		Weap.damage = Value
 		Item:addWeapon(Weap)
@@ -460,9 +484,7 @@ function This:GetWeaponAccuracy(Item)
 end
 
 function This:ModWeaponAccuracy(Item,Per)
--- modify the accuracy by a percent
-
-	This:BumpWeaponNameMark(Item)
+-- set the accuracy
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -487,8 +509,6 @@ end
 function This:SetWeaponAccuracy(Item,Value)
 -- modify the accuracy by a percent
 
-	This:BumpWeaponNameMark(Item)
-
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
 
@@ -501,6 +521,61 @@ function This:SetWeaponAccuracy(Item,Value)
 		end
 
 		Weap.accuracy = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+--------
+
+function This:GetWeaponExplosion(Item)
+-- get weapon explosion radius.
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList)
+	do
+		return round(Weap.explosionRadius,3)
+	end
+
+	return
+end
+	
+function This:ModWeaponExplosion(Item,Per)
+-- modify the explosion by a percent
+
+	local WeapList = {Item:getWeapons()}
+	local Value = 0
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Value = ((Weap.explosionRadius * (Per / 100)) + Weap.explosionRadius)
+
+		if(Value < 0) then
+			Value = 0.0
+		end
+
+		Weap.explosionRadius = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function This:SetWeaponExplosion(Item,Value)
+-- set the explosion radius
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+
+		if(Value < 0) then
+			Value = 0.0
+		end
+
+		Weap.explosionRadius = Value
 		Item:addWeapon(Weap)
 	end
 
@@ -538,8 +613,6 @@ end
 
 function This:ModWeaponEfficiency(Item,Per)
 -- modify the accuracy by a percent, autodetecting mining or scav.
-
-	This:BumpWeaponNameMark(Item)
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -617,8 +690,6 @@ end
 
 function This:SetWeaponColour(Item,Colour)
 -- modify the fire rate by a percent
-
-	This:BumpWeaponNameMark(Item)
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -707,8 +778,6 @@ end
 function This:ModWeaponHeatRate(Item,Per)
 -- modify the heat per shot value by a percent.
 
-	This:BumpWeaponNameMark(Item)
-
 	local Value = ((Item.heatPerShot * (Per / 100)) + Item.heatPerShot)
 
 	if(Value < 0) then
@@ -729,8 +798,6 @@ end
 
 function This:ModWeaponCoolRate(Item,Per)
 -- modify the cooling rate value by a percent.
-
-	This:BumpWeaponNameMark(Item)
 
 	local Value = ((Item.coolingRate * (Per / 100)) + Item.coolingRate)
 
@@ -753,8 +820,6 @@ end
 function This:ModWeaponMaxHeat(Item,Per)
 -- modify the max heat value by a percent.
 
-	This:BumpWeaponNameMark(Item)
-
 	local Value = ((Item.maxHeat * (Per / 100)) + Item.maxHeat)
 
 	if(Value < 0) then
@@ -775,8 +840,6 @@ end
 
 function This:ModWeaponBaseEnergy(Item,Per)
 -- modify the base energy value by a percent.
-
-	This:BumpWeaponNameMark(Item)
 
 	local Value = ((Item.baseEnergyPerSecond * (Per / 100)) + Item.baseEnergyPerSecond)
 
@@ -799,8 +862,6 @@ end
 function This:ModWeaponAccumEnergy(Item,Per)
 -- modify the energy accumulation value by a percent.
 
-	This:BumpWeaponNameMark(Item)
-
 	local Value = ((Item.energyIncreasePerSecond * (Per / 100)) + Item.energyIncreasePerSecond)
 
 	if(Value < 0) then
@@ -822,8 +883,6 @@ end
 function This:ModWeaponSpeed(Item,Per)
 -- modify the tracking speed value by a percent.
 
-	This:BumpWeaponNameMark(Item)
-
 	local Value = ((Item.turningSpeed * (Per / 100)) + Item.turningSpeed)
 
 	if(Value < 0) then
@@ -844,9 +903,6 @@ end
 
 function This:SetWeaponCoaxial(Item,Val)
 -- set automatic targeting.
-
-	-- this is getting done by the damage mod
-	-- This:BumpWeaponNameMark(Item)
 
 	Item.coaxial = Val
 
@@ -883,10 +939,7 @@ end
 function This:SetWeaponSize(Item,Val)
 -- set this turret's size
 
-	This:BumpWeaponNameMark(Item)
-
 	Item.size = Val
-
 	return
 end
 
@@ -906,8 +959,6 @@ function This:SetWeaponSlots(Item,Val)
 		-- many as we want lol.
 		Val = 0
 	end
-
-	This:BumpWeaponNameMark(Item)
 
 	Item.slots = Val
 	return
@@ -932,8 +983,6 @@ function This:SetWeaponTargeting(Item,Val)
 	if(Val == false and This:IsDefaultTargetingNerfFixable(Item)) then
 		This:FixDefaultTargetingNerf(Item)
 	end
-
-	This:BumpWeaponNameMark(Item)
 
 	Item.automatic = Val
 	return
@@ -964,8 +1013,6 @@ function This:SetWeaponCrew(Item,Val)
 
 	local Gunners = Crew()
 	Gunners:add(Val,CrewMan(CrewProfessionType.Gunner))
-
-	This:BumpWeaponNameMark(Item)
 
 	Item.crew = Gunners
 	return

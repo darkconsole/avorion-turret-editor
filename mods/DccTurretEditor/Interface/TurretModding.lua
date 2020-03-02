@@ -148,12 +148,12 @@ function Win:BuildUI()
 
 	local Pane = UIHorizontalSplitter(
 		Rect(self.Window.size),
-		10, 10, 0.6
+		10, 10, 0.65
 	)
 
 	local BPane = UIHorizontalSplitter(
 		Pane.top,
-		0, 0, 0.5
+		0, 0, 0.35
 	)
 
 	local TPane = UIVerticalSplitter(
@@ -230,7 +230,7 @@ function Win:BuildUI()
 	-- buttons don't place well so we alter their rects after creating.
 
 	self.UpgradeFrame = self.Window:createFrame(BPane.bottom)
-	local Rows = 7
+	local Rows = 9
 	local Cols = 5
 
 	local Hint, HintLine
@@ -506,6 +506,15 @@ function Win:BuildUI()
 	self.NumColourVal.showValue = true
 	self.NumColourVal.center = vec2(self.NumColourVal.center.x,(self.NumColourVal.center.y - 6))
 
+	self.BtnMkFlak = self.Window:createButton(
+		Rect(),
+		"Convert To Flak",
+		"TurretModdingUI_OnClickedBtnMkFlak"
+	)
+	self.BtnMkFlak.textSize = FontSize3
+	self.BtnMkFlak.rect = FramedRect(self.UpgradeFrame,1,9,Cols,Rows)
+	self.BtnMkFlak.tooltip = "Convert an Anti-Fighter turret into a flak barrier turret. Requries scrapping 5 other Anti-Fighter turrets for parts."
+
 	return
 end
 
@@ -709,11 +718,13 @@ function Win:CalculateBinItems()
 
 		BuffValue = BuffValue + RarityValue
 
+		--[[
 		PrintDebug(
 			"Bin Item: " .. Item.item.weaponName ..
 			", Rarity: " .. TurretLib:GetWeaponRarityValue(Item.item) ..
 			", Tech: " .. Item.item.averageTech
 		)
+		]]--
 	end
 
 	if(Count == 0) then
@@ -728,11 +739,13 @@ function Win:CalculateBinItems()
 	TechPer = (TechLevel / Real.averageTech)
 	BuffValue = (BuffValue * TechPer)
 
+	--[[
 	PrintDebug(
 		"TechLevel: ".. TechLevel .."/" .. Real.averageTech ..
 		", " .. (TechPer * 100) .. "%" ..
 		", BuffValue: " .. BuffValue
 	)
+	]]--
 
 	return BuffValue
 end
@@ -752,9 +765,44 @@ function Win:ConsumeBinItems()
 	return
 end
 
+function Win:GetBinCountOfType(ThisType)
+-- make sure everything in the bin is the same weapon type.
+
+	local ItemVec
+	local Item
+	local Real
+
+	local WeapList
+	local WeapIter
+	local Weap
+
+	local Result = 0
+	local AddResult = false
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		Real = Item.item
+		AddResult = false
+
+		for WeapIter,Weap in pairs({Real:getWeapons()}) do
+			--print("[DccTurretModding:GetBinCountOfType] " .. Weap.appearance .. " vs " .. ThisType)
+			if(Weap.appearance == ThisType) then
+				AddResult = true
+			end
+		end
+
+		if(AddResult) then
+			Result = Result + 1
+		end
+	end
+
+	return Result
+end
+
 --------------------------------------------------------------------------------
 
 function Win:UpdateItems(Mock,Real)
+
+	TurretLib:BumpWeaponNameMark(Real)
 
 	TurretLib:UpdatePlayerInventory(
 		Player().index,
@@ -779,6 +827,7 @@ function Win:UpdateFields()
 	local ColourLight = Color()
 
 	local WeaponType = nil
+	local WeaponRealType = nil
 	local Category = 0
 	local HeatRate = 0
 	local CoolRate = 0
@@ -801,6 +850,7 @@ function Win:UpdateFields()
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
+		WeaponRealType = TurretLib:GetWeaponRealType(Item.item)
 		Category = TurretLib:GetWeaponCategory(Item.item)
 		HeatRate = TurretLib:GetWeaponHeatRate(Item.item)
 		CoolRate = TurretLib:GetWeaponCoolRate(Item.item)
@@ -905,6 +955,12 @@ function Win:UpdateFields()
 		self.BtnDamage.caption = "Power Amplifiers"
 	end
 
+	if(WeaponRealType == WeaponAppearance.AntiFighter) then
+		self.BtnMkFlak.active = true
+	else
+		self.BtnMkFlak.active = false
+	end
+
 	-- show everything.
 
 	self.BtnHeat:show()
@@ -991,7 +1047,7 @@ function Win:OnItemClicked(SelectID, FX, FY, Item, Button)
 	local FromVec = ivec2(FX,FY)
 	self.CurrentSelectID = SelectID
 
-	print("[DccTurretEditor:OnItemClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+	--print("[DccTurretEditor:OnItemClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
 
 	if(Button == 3) then
 		self.Inv:add(Item,0)
@@ -1010,13 +1066,13 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	local BackgroundColour = Color()
 
 	if(SelectID == self.CurrentSelectID) then
-		print("[DccTurretEditor] Item was source and dest.")
+		--print("[DccTurretEditor] Item was source and dest.")
 		return
 	end
 
 	self.Item:clear()
 	self.Item:add(Item)
-	print("[DccTurretEditor] Selected Turret: " .. Item.item.weaponName)
+	--print("[DccTurretEditor] Selected Turret: " .. Item.item.weaponName)
 
 	--------
 
@@ -1030,7 +1086,7 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 
 	if(OldItem ~= nil) then
 		self.Inv:add(OldItem)
-		print("[DccTurretEditor] Replaced Turret: " .. OldItem.item.weaponName)
+		--print("[DccTurretEditor] Replaced Turret: " .. OldItem.item.weaponName)
 	end
 
 	--------
@@ -1048,7 +1104,7 @@ function Win:OnBinClicked(SelectID, FX, FY, Item, Button)
 
 	local FromVec = ivec2(FX,FY)
 
-	print("[DccTurretEditor:OnBinClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
+	--print("[DccTurretEditor:OnBinClicked] Click " .. Item.item.weaponName .. " Button " .. Button)
 
 	if(Button == 3) then
 		self.Inv:add(Item,0)
@@ -1065,24 +1121,24 @@ function Win:OnBinAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	local FromVec = ivec2(FX,FY)
 
 	if(SelectID == self.CurrentSelectID) then
-		print("[DccTurretEditor] Bin was source and dest.")
+		--print("[DccTurretEditor] Bin was source and dest.")
 		return
 	end
 
 	if(tablelength(self.Bin:getItems()) >= 5) then
-		print("[DccTurretEditor] Bin is full.")
+		--print("[DccTurretEditor] Bin is full.")
 		return
 	end
 
 	self.Bin:add(Item)
-	print("[DccTurretEditor] Added to Bin: " .. Item.item.weaponName .. " " .. FX .. " " .. FY)
+	--print("[DccTurretEditor] Added to Bin: " .. Item.item.weaponName .. " " .. FX .. " " .. FY)
 
 	--------
 
 	if(self.CurrentSelectID == self.Item.index) then
 		self.Item:remove(FromVec)
 	elseif(self.CurrentSelectID == self.Inv.selection.index) then
-		print("[DccTurretModding:OnBinAdded] Remove from INV")
+		--print("[DccTurretModding:OnBinAdded] Remove from INV")
 		self.Inv:remove(FromVec)
 	end
 
@@ -1101,7 +1157,7 @@ function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
 	local FromVec = ivec2(FX,FY)
 	self.CurrentSelectID = SelectID
 
-	print("[DccTurretEditor:OnInvClicked] SelectID " .. SelectID .. " Click " .. Item.item.weaponName .. " Button " .. Button)
+	--print("[DccTurretEditor:OnInvClicked] SelectID " .. SelectID .. " Click " .. Item.item.weaponName .. " Button " .. Button)
 
 	if(Button == 3) then
 		if(ItemCount == 0) then
@@ -1123,12 +1179,12 @@ function Win:OnInvAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 	local FromVec = ivec2(FX,FY)
 
 	if(SelectID == self.CurrentSelectID) then
-		print("[DccTurretEditor] Inv was source and dest.")
+	--	print("[DccTurretEditor] Inv was source and dest.")
 		return
 	end
 
 	self.Inv:add(Item)
-	print("[DccTurretEditor] Added to Inv: " .. Item.item.weaponName)
+	--print("[DccTurretEditor] Added to Inv: " .. Item.item.weaponName)
 
 	--------
 
@@ -1570,6 +1626,55 @@ function Win:OnClickedBtnSize()
 	return
 end
 
+function Win:OnClickedBtnMkFlak()
+-- change turrent size
+	
+	local Mock, Real = Win:GetCurrentItems()
+	local BinCount = Win:GetBinCount()
+	local BinCountType = Win:GetBinCountOfType(WeaponAppearance.AntiFighter)
+
+	print("[DccTurretModding:OnClickedBtnMkFlak] Bin " .. BinCount .. " Type " .. BinCountType)
+
+	local FireRate = 6.0
+	local Range = 1.25
+	local Accuracy = 0.05
+	local Slots = 1
+	local Crew = 1
+	local Radius = 40
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BinCount < 5 or BinCountType < 5) then
+		PrintError("Requires 5 Anti-Fighter turrets to be scrapped.")
+		return
+	end
+
+	Win:ConsumeBinItems()
+	TurretLib:SetWeaponFireRate(Real,FireRate)
+	TurretLib:SetWeaponAccuracy(Real,Accuracy)
+	TurretLib:SetWeaponRange(Real,Range)
+	TurretLib:SetWeaponSlots(Real,Slots)
+	TurretLib:SetWeaponCrew(Real,Crew)
+	TurretLib:SetWeaponExplosion(Real,Radius)
+
+	if(not TurretLib:GetWeaponTargeting(Real)) then
+		TurretLib:SetWeaponTargeting(Real,true)
+	end
+	
+	if(not TurretLib:GetWeaponCoaxial(Real)) then
+		TurretLib:SetWeaponCoaxial(Real,true)
+		TurretLib:ModWeaponDamage(Real,-66.6666)
+	end
+
+	TurretLib:RenameWeapon(Real,GetLocalizedString("Anti-Fighter"),GetLocalizedString("Flak Cannon"))
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function TurretModdingUI_Update(NewCurrentIndex)
@@ -1608,6 +1713,7 @@ function TurretModdingUI_OnClickedBtnColour(...) Win:OnClickedBtnColour(...) end
 function TurretModdingUI_OnClickedBtnCoaxial(...) Win:OnClickedBtnCoaxial(...) end
 function TurretModdingUI_OnClickedBtnSize(...) Win:OnClickedBtnSize(...) end
 function TurretModdingUI_OnClickedBtnMounting(...) Win:OnClickedBtnMounting(...) end
+function TurretModdingUI_OnClickedBtnMkFlak(...) Win:OnClickedBtnMkFlak(...) end
 
 --------------------------------------------------------------------------------
 
@@ -1638,7 +1744,7 @@ end
 function onShowWindow()
 -- reset the dialog when it is opened.
 
-	print("[DccTurretModding] OnShowWindow")
+	--print("[DccTurretModding] OnShowWindow")
 
 	Win.Item:clear()
 	Win.Item:addEmpty()
