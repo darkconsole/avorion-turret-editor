@@ -297,6 +297,28 @@ function This:ModWeaponFireRate(Item,Per)
 	return
 end
 
+function This:SetWeaponFireRate(Item,Value)
+-- modify the fire rate by a percent
+
+	This:BumpWeaponNameMark(Item)
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Value < 0) then
+			Value = 0
+		end
+
+		print("[DccTurretEditor] Fire Rate: " .. Weap.fireRate .. " " .. Value)
+
+		Weap.fireRate = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
 --------
 
 function This:GetWeaponRange(Item)
@@ -324,6 +346,27 @@ function This:ModWeaponRange(Item,Per)
 	for WeapIter,Weap in pairs(WeapList) do
 		Value = ((Weap.reach * (Per / 100)) + Weap.reach)
 
+		if(Value < 0) then
+			Value = 0
+		end
+
+		Weap.reach = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function This:SetWeaponRange(Item,Value)
+-- modify the range by a percent
+
+	This:BumpWeaponNameMark(Item)
+	Value = Value * 100
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
 		if(Value < 0) then
 			Value = 0
 		end
@@ -377,6 +420,30 @@ function This:ModWeaponDamage(Item,Per)
 	return
 end
 
+function This:SetWeaponDamage(Item,Value)
+-- modify the range by a percent
+
+	This:BumpWeaponNameMark(Item)
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Value < 0) then
+			Value = 0
+		end
+
+		print(
+			"[DccTurretEditor] Weapon Dmg: " .. Weap.damage .. " " .. Value
+		)
+
+		Weap.damage = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
 --------
 
 function This:GetWeaponAccuracy(Item)
@@ -403,6 +470,29 @@ function This:ModWeaponAccuracy(Item,Per)
 
 	for WeapIter,Weap in pairs(WeapList) do
 		Value = ((Weap.accuracy * (Per / 100)) + Weap.accuracy)
+
+		if(Value < 0) then
+			Value = 0.0
+		elseif(Value > 1) then
+			Value = 1.0
+		end
+
+		Weap.accuracy = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function This:SetWeaponAccuracy(Item,Value)
+-- modify the accuracy by a percent
+
+	This:BumpWeaponNameMark(Item)
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
 
 		if(Value < 0) then
 			Value = 0.0
@@ -811,10 +901,10 @@ end
 function This:SetWeaponSlots(Item,Val)
 -- set this turret's size
 
-	if(Val < Config.TurretSlotMin) then
+	if(Val < 0) then
 		-- we can totally make 0 slot turrets and it will let us mount as
 		-- many as we want lol.
-		Val = Config.TurretSlotMin
+		Val = 0
 	end
 
 	This:BumpWeaponNameMark(Item)
