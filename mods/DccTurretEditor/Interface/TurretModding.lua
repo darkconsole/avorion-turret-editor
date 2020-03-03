@@ -508,7 +508,7 @@ function Win:BuildUI()
 
 	self.BtnMkFlak = self.Window:createButton(
 		Rect(),
-		"Convert To Flak",
+		"Convert To Flak Cannon",
 		"TurretModdingUI_OnClickedBtnMkFlak"
 	)
 	self.BtnMkFlak.textSize = FontSize3
