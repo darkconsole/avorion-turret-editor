@@ -13,3 +13,10 @@ function execute(PlayerID, Command, Action, ...)
 	return 0, "", ""
 end
 
+function getDescription()
+	return "Activates turret editor"
+end
+
+function getHelp()
+	return "Activates turret editor. Usage:\n/tmod\n"
+end
