@@ -739,13 +739,11 @@ function Win:CalculateBinItems()
 	TechPer = (TechLevel / Real.averageTech)
 	BuffValue = (BuffValue * TechPer)
 
-	--[[
 	PrintDebug(
 		"TechLevel: ".. TechLevel .."/" .. Real.averageTech ..
 		", " .. (TechPer * 100) .. "%" ..
 		", BuffValue: " .. BuffValue
 	)
-	]]--
 
 	return BuffValue
 end
@@ -1632,15 +1630,15 @@ function Win:OnClickedBtnMkFlak()
 	local Mock, Real = Win:GetCurrentItems()
 	local BinCount = Win:GetBinCount()
 	local BinCountType = Win:GetBinCountOfType(WeaponAppearance.AntiFighter)
-
-	print("[DccTurretModding:OnClickedBtnMkFlak] Bin " .. BinCount .. " Type " .. BinCountType)
+	local BinBuff = Win:CalculateBinItems() / 100
+	local ItemBuff = TurretLib:GetWeaponRarityValue(Real) / 100
 
 	local FireRate = 6.0
-	local Range = 1.25
+	local Range = 0.75
 	local Accuracy = 0.05
+	local Radius = 35
 	local Slots = 1
 	local Crew = 1
-	local Radius = 40
 
 	if(Mock == nil) then
 		PrintError("No turret selected")
@@ -1651,6 +1649,16 @@ function Win:OnClickedBtnMkFlak()
 		PrintError("Requires 5 Anti-Fighter turrets to be scrapped.")
 		return
 	end
+
+	-- the better the turrets you scrap the better some of the values
+	-- on the flak cannon will be. better fire rates, better range, and
+	-- better blast radius.
+
+	FireRate = FireRate + (((FireRate * BinBuff) + (FireRate * ItemBuff)) * 2)
+	Range = Range + (((Range * BinBuff) + (Range * ItemBuff)) * 2)
+	Radius = Radius + (((Radius * BinBuff) + (Radius * ItemBuff)) * 2)
+
+	print("[DccTurretModding:OnClickedBtnMkFlak] BinBuff: " .. BinBuff .. ", ItemBuff: " .. ItemBuff .. ", FireRate: " .. FireRate .. ", Range: " .. Range .. ", Radius: " .. Radius)
 
 	Win:ConsumeBinItems()
 	TurretLib:SetWeaponFireRate(Real,FireRate)
@@ -1664,10 +1672,13 @@ function Win:OnClickedBtnMkFlak()
 		TurretLib:SetWeaponTargeting(Real,true)
 	end
 	
-	if(not TurretLib:GetWeaponCoaxial(Real)) then
-		TurretLib:SetWeaponCoaxial(Real,true)
-		TurretLib:ModWeaponDamage(Real,-66.6666)
-	end
+	-- allowing them to not be coaxial will probably make it easier to
+	-- minimise the number of them needed.
+
+	--if(not TurretLib:GetWeaponCoaxial(Real)) then
+	--	TurretLib:SetWeaponCoaxial(Real,true)
+	--	TurretLib:ModWeaponDamage(Real,-66.6666)
+	--end
 
 	TurretLib:RenameWeapon(Real,GetLocalizedString("Anti-Fighter"),GetLocalizedString("Flak Cannon"))
 
