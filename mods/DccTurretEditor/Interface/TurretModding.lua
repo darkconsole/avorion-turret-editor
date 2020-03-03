@@ -1076,7 +1076,7 @@ function Win:OnItemAdded(SelectID, FX, FY, Item, FromIndex, ToIndex, TX, TY)
 
 	if(self.CurrentSelectID == self.Bin.index) then
 		self.Bin:remove(FromVec)
-	elseif(self.CurrentSelectID == self.Inv.index) then
+	elseif(self.CurrentSelectID == self.Inv.selection.index) then
 		self.Inv:remove(FromVec)
 	end
 
