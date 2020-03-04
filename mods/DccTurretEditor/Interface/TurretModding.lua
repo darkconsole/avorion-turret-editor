@@ -1633,11 +1633,12 @@ function Win:OnClickedBtnMkFlak()
 	local BinBuff = Win:CalculateBinItems() / 100
 	local ItemBuff = TurretLib:GetWeaponRarityValue(Real) / 100
 
-	local Damage = 3.0
-	local FireRate = 6.0
+	local Damage = 3.25
+	local FireRate = 8.0
 	local Range = 0.75
-	local Accuracy = 0.05
-	local Radius = 35
+	local Accuracy = 0.03
+	local Radius = 37
+	local Speed = 2.25
 	local Slots = 1
 	local Crew = 1
 
@@ -1659,10 +1660,11 @@ function Win:OnClickedBtnMkFlak()
 	FireRate = FireRate + (((FireRate * BinBuff) + (FireRate * ItemBuff)) * 2)
 	Range = Range + (((Range * BinBuff) + (Range * ItemBuff)) * 2)
 	Radius = Radius + (((Radius * BinBuff) + (Radius * ItemBuff)) * 2)
+	Speed = Speed + (((Speed * BinBuff) + (Speed * ItemBuff)) * 3)
 
 	print("[DccTurretModding:OnClickedBtnMkFlak] BinBuff: " .. BinBuff .. ", ItemBuff: " .. ItemBuff .. ", FireRate: " .. FireRate .. ", Range: " .. Range .. ", Radius: " .. Radius)
 
-	--Win:ConsumeBinItems()
+	Win:ConsumeBinItems()
 	TurretLib:SetWeaponDamage(Real,Damage)
 	TurretLib:SetWeaponFireRate(Real,FireRate)
 	TurretLib:SetWeaponAccuracy(Real,Accuracy)
@@ -1670,6 +1672,7 @@ function Win:OnClickedBtnMkFlak()
 	TurretLib:SetWeaponSlots(Real,Slots)
 	TurretLib:SetWeaponCrew(Real,Crew)
 	TurretLib:SetWeaponExplosion(Real,Radius)
+	TurretLib:SetWeaponSpeed(Real,Speed)
 
 	if(not TurretLib:GetWeaponTargeting(Real)) then
 		TurretLib:SetWeaponTargeting(Real,true)
@@ -1679,8 +1682,8 @@ function Win:OnClickedBtnMkFlak()
 	-- minimise the number of them needed.
 
 	--if(not TurretLib:GetWeaponCoaxial(Real)) then
-	--	TurretLib:SetWeaponCoaxial(Real,true)
-	--	TurretLib:ModWeaponDamage(Real,-66.6666)
+		--TurretLib:SetWeaponCoaxial(Real,true)
+		--TurretLib:ModWeaponDamage(Real,-66.6666)
 	--end
 
 	TurretLib:RenameWeapon(Real,GetLocalizedString("Anti-Fighter"),GetLocalizedString("Flak Cannon"))

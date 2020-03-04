@@ -893,6 +893,17 @@ function This:ModWeaponSpeed(Item,Per)
 	return
 end
 
+function This:SetWeaponSpeed(Item,Value)
+-- set the turret tracking speed.
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.turningSpeed = Value
+	return
+end
+
 --------
 
 function This:GetWeaponCoaxial(Item)
