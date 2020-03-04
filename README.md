@@ -1,6 +1,6 @@
 # Weapon Engineering: Avorion Turret Editor
 
-![Warning](https://img.shields.io/badge/BETA-Use%20At%20Your%20Own%20Risk-red.svg) ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.20.4-lightgrey.svg)
+![Warning](https://img.shields.io/badge/BETA-Use%20At%20Your%20Own%20Risk-red.svg) ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.33.2-lightgrey.svg) ![Install Type](https://img.shields.io/badge/Install%20Type-Server%20%26%20Client-lightgrey.svg)
 
 > *By the time we reach Jupiter Station, I don't want their engineers to have a
 > thing to do but give us a wash and a wax.*
@@ -30,6 +30,8 @@ Additionally, autotargeting can be added, and the colour of the projectiles and
 beam can be customised for credits. You want red beams and bullets? Then get
 some red beams and bullets.
 
+
+
 ## Upgrade Options
 
 * Heat Sinks - Reduces the heat generated per shot, and increases the cooldown
@@ -44,28 +46,38 @@ some red beams and bullets.
 * Phase Filters - Increase the efficiency rating of mining or scav gun.
 * Targeting - Add or remove self targeting for the turret.
 * Colour HSV - Drag the sliders to change the colour of the beam or projectiles.
+* Reinforced Mounting - Reduce the slot cost of a turret. Requires 5 orange or better turrets to be scrapped in the process.
+* Convert Anti-Fighter Turret to Flak Cannon. 
+
+
+
+## Major Weapon Modifications
+
+### Reinforced Mounting
+
+You can reduce the slot cost of turrets so that you can fit more of those stupidly high damage cannons on your gunship. This requires 5 other Exceptional quality or better turrets to be scrapped in the process for materials.
+
+### Convert to Flak Cannons
+
+You can convert an Anti-Fighter turret into a Flak Cannon. This requires at least 3 other Anti-Fighter turrets to be scrapped in the process for materials. The better the target turret and scrapped turrets are the better the Flak Cannon will be.
+
+The most popular use of Flak Cannons is Battlestar Galactica (2004). They are short range weapons that rapidly fire low damage high explosive payloads propelling metal fragments at high velocity in every direction to create an area of denial against fighters and torpedos. It also looks cool AF.
+
+Flak Cannon Videos:
+* https://streamable.com/0i4fd
+* https://streamable.com/zohs5
+
+
 
 ## Install
 
-If you don't read and follow these simple install instructions I will tell the
-Xsotan where you sleep.
+If you do not know how to manually install mods you should be installing this via the
+Steam Workshop. I'll put a link here once I actually push it in.
 
-**Multiplayer Server Admin**
+If you wish to customize the settings of this mod you may copy `ConfigDefault.lua` to `moddata/DccWeaponEngineering/Config.lua` then any changes you make will persist when this mod gets updated.
 
-1) Copy the `data` and `mods` folder into the game directory. This must be
-installed on both the client and the server, unless the players do not intend
-to use it then they don't have to install it. This mod does not overwrite any
-stock files at this time.
-
-2) Copy the file `mods\DccTurretEditor\ConfigDefault.lua` to `Config.lua` and
-tweak if you want.
-
-**Single Player**
-
-1) Copy the the `data` and `mods` folders into your game
-
-2) Copy the file `mods\DccTurretEditor\ConfigDefault.lua` to `Config.lua` and
-tweak if you want.
+MULTIPLAYER NOTE: This must also be installed on the server to work. You know, so you can't just
+level up turrets without everyone else being able to as well. If installed on the server, clients are not required to install it if they do not intend to use it.
 
 ## Usage
 
@@ -97,6 +109,8 @@ wrench on top of it.
    if you are just doing targeting and colour, you do not need to add any
    turrets to the scrap bin.
 
+
+
 # Notes
 
 * Targeting only costs money because I believe if you are paying the gunners to
@@ -119,10 +133,17 @@ a Mark Number added to the name. "Double Mining Mk 2 Turret" means this is a
 turret you have upgraded twice, but I've totally stacked Mk 2 turrets before. It
 is not perfect.
 
+
+
 ## Future Plans
 
 Make it a system upgrade chip that drops from combat/scavving instead of the
 chat command to attach it to your ship.
+
+## Dreams
+
+For Avorion to let mods define custom blocks so the more Weapons Bay you build the
+better guns you can make.
 
 ## Support
 
