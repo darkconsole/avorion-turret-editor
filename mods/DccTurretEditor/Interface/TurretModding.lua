@@ -1633,6 +1633,7 @@ function Win:OnClickedBtnMkFlak()
 	local BinBuff = Win:CalculateBinItems() / 100
 	local ItemBuff = TurretLib:GetWeaponRarityValue(Real) / 100
 
+	local Damage = 3.0
 	local FireRate = 6.0
 	local Range = 0.75
 	local Accuracy = 0.05
@@ -1645,8 +1646,8 @@ function Win:OnClickedBtnMkFlak()
 		return
 	end
 
-	if(BinCount < 5 or BinCountType < 5) then
-		PrintError("Requires 5 Anti-Fighter turrets to be scrapped.")
+	if(BinCountType < 3) then
+		PrintError("Requires at least 3 Anti-Fighter turrets to be scrapped.")
 		return
 	end
 
@@ -1654,13 +1655,15 @@ function Win:OnClickedBtnMkFlak()
 	-- on the flak cannon will be. better fire rates, better range, and
 	-- better blast radius.
 
+	Damage = Damage + (((Damage * BinBuff) + (Damage * ItemBuff)) * 3)
 	FireRate = FireRate + (((FireRate * BinBuff) + (FireRate * ItemBuff)) * 2)
 	Range = Range + (((Range * BinBuff) + (Range * ItemBuff)) * 2)
 	Radius = Radius + (((Radius * BinBuff) + (Radius * ItemBuff)) * 2)
 
 	print("[DccTurretModding:OnClickedBtnMkFlak] BinBuff: " .. BinBuff .. ", ItemBuff: " .. ItemBuff .. ", FireRate: " .. FireRate .. ", Range: " .. Range .. ", Radius: " .. Radius)
 
-	Win:ConsumeBinItems()
+	--Win:ConsumeBinItems()
+	TurretLib:SetWeaponDamage(Real,Damage)
 	TurretLib:SetWeaponFireRate(Real,FireRate)
 	TurretLib:SetWeaponAccuracy(Real,Accuracy)
 	TurretLib:SetWeaponRange(Real,Range)

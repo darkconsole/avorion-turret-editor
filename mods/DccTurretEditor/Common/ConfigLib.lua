@@ -8,6 +8,8 @@ end
 local This = {
 
 	OK = false,
+	ConfDir = "moddata/DccWeaponEngineering",
+	ConfFile = "Config.lua",
 
 	RarityMult = 0.0,
 	CostColour = 0,
@@ -23,12 +25,12 @@ local This = {
 
 	LoadDefault = function(self)
 
-		PrintMessage("Loading ConfigDefault.lua")
+		local File
 
-		local IsOK, Input = pcall(
-			include,
-			"mods/DccTurretEditor/ConfigDefault"
-		)
+		PrintMessage("Loading ConfigDefault.lua")
+		IsOK, Input = pcall(function()
+			return include("mods/DccTurretEditor/ConfigDefault")
+		end)
 
 		if(not IsOK) then
 			PrintMessage("Error loading ConfigDefault.lua")
@@ -37,17 +39,11 @@ local This = {
 
 		--------
 
-		self.RarityMult = Input.RarityMult
-		self.CostColour = Input.CostColour
-		self.CostTargeting = Input.CostTargeting
-		self.CostCoaxial = Input.CostCoaxial
-		self.CostSize = Input.CostSize
-		self.Colour1Mod = Input.Colour1Mod
-		self.Colour2Mod = Input.Colour2Mod
-		self.NearZeroFloat = Input.NearZeroFloat
-		self.TurretSlotMin = Input.TurretSlotMin
-		self.FixDefaultTargetingNerf = Input.FixDefaultTargetingNerf
-		self.Debug = Input.Debug
+		for Property,Value in pairs(Input) do
+			if(self[Property] ~= nil) then
+				self[Property] = Value
+			end
+		end
 
 		--------
 
@@ -57,54 +53,57 @@ local This = {
 	end,
 
 	LoadCustom = function(self)
-		PrintMessage("Loading Config.lua")
 
-		local IsOK, Input = pcall(
-			include,
-			"mods/DccTurretEditor/Config"
-		)
+		local File
+		local Data
+		local Input
+		local Property
+		local Value
 
-		if(not IsOK) then
-			PrintMessage("Config.lua not found. Skipping.")
+		-- cheers Rinart73
+
+		-- make sure our config directory exists.
+
+		createDirectory(self.ConfDir)
+
+		-- try and open the custom config file all low level like. the default distribution
+		-- does not include this file so if someone wants to customize it and have their
+		-- choices not get overwritten then they can copy ConfigDefault.lua to the moddata
+		-- folder and keep their choices.
+
+		File = io.open(self.ConfDir .. "/" .. self.ConfFile,"r")
+		if(File == nil) then
+			PrintMessage("No " .. self.ConfDir .. "/" .. self.ConfFile .. " found. This is fine.")
 			return
 		end
 
-		--------
+		PrintMessage("Loading " .. self.ConfDir .. "/" .. self.ConfFile)
+		Data = File:read("*all")
+		File:close()
+		File = nil
 
-		if(Input.RarityMult ~= nil)
-		then self.RarityMult = Input.RarityMult end
+		-- now try to load the custom config file legit.
 
-		if(Input.CostColour ~= nil)
-		then self.CostColour = Input.CostColour end
+		if(Data == "") then
+			PrintMessage("Error loading custom config. Skipping.")
+			return
+		end
 
-		if(Input.CostTargeting ~= nil)
-		then self.CostTargeting = Input.CostTargeting end
+		File = loadstring(Data)
+		if(File == nil) then
+			PrintMessage("Error parsing custom config. Skipping.")
+			return
+		end
 
-		if(Input.CostCoaxial ~= nil)
-		then self.CostCoaxial = Input.CostCoaxial end
+		Input = File()
 
-		if(Input.CostSize ~= nil)
-		then self.CostSize = Input.CostSize end
+		-- now merge in the settings.
 
-		if(Input.Colour1Mod ~= nil)
-		then self.Colour1Mod = Input.Colour1Mod end
-
-		if(Input.Colour2Mod ~= nil)
-		then self.Colour2Mod = Input.Colour2Mod end
-
-		if(Input.CostDebug ~= nil)
-		then self.CostDebug = Input.CostDebug end
-
-		if(Input.NearZeroFloat ~= nil)
-		then self.NearZeroFloat = Input.NearZeroFloat end
-
-		if(Input.TurretSlotMin ~= nil)
-		then self.TurretSlotMin = Input.TurretSlotMin end
-
-		if(Input.FixDefaultTargetingNerf ~= nil)
-		then self.FixDefaultTargetingNerf = Input.FixDefaultTargetingNerf end
-
-		--------
+		for Property,Value in pairs(Input) do
+			if(self[Property] ~= nil) then
+				self[Property] = Value
+			end
+		end
 
 		-- some value sanity.
 
@@ -114,16 +113,15 @@ local This = {
 		if(self.FixDefaultTargetingNerf < 0.0)
 		then self.FixDefaultTargetingNerf = 0.0 end
 
-		--------
-
-		PrintMessage("Config.lua OK")
 		return
 	end
 
 };
 
 if(This:LoadDefault()) then
-	This:LoadCustom()
+	if(onServer()) then
+		This:LoadCustom()
+	end
 end
 
 return This;
