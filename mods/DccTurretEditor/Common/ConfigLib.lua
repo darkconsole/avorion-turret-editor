@@ -1,4 +1,6 @@
 
+include("utility")
+
 local PrintMessage = function(Message)
 	if(onServer()) then
 		print("[DccTurretEditorConfig] " .. Message)
@@ -16,8 +18,8 @@ local This = {
 	CostTargeting = 0,
 	CostCoaxial = 0,
 	CostSize = 0,
-	Colour1Mod = nil,
-	Colour2Mod = nil,
+	Colour1Mod = { Sat=1.0, Val=1.0 },
+	Colour2Mod = { Sat=1.0, Val=1.0 },
 	NearZeroFloat = 0.0,
 	TurretSlotMin = 0,
 	FixDefaultTargetingNerf = 0.0,
@@ -41,7 +43,11 @@ local This = {
 
 		for Property,Value in pairs(Input) do
 			if(self[Property] ~= nil) then
-				self[Property] = Value
+				if(type(Value) == "table") then
+					self[Property] = table.deepcopy(Value)
+				else
+					self[Property] = Value
+				end
 			end
 		end
 
@@ -101,7 +107,11 @@ local This = {
 
 		for Property,Value in pairs(Input) do
 			if(self[Property] ~= nil) then
-				self[Property] = Value
+				if(type(Value) == "table") then
+					self[Property] = table.deepcopy(Value)
+				else
+					self[Property] = Value
+				end
 			end
 		end
 
