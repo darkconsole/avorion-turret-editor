@@ -56,5 +56,5 @@ meta =
     saveGameAltering = false,
 
     -- Contact info for other users to reach you in case they have questions
-    contact = "darkcee.legit@gmail.com",
+    contact = "twitter.com/darkconsole",
 }

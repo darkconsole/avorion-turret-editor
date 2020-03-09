@@ -72,7 +72,7 @@ Flak Cannon Videos:
 ## Install
 
 If you do not know how to manually install mods you should be installing this via the
-Steam Workshop. I'll put a link here once I actually push it in.
+Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2017677089
 
 If you wish to customize the settings of this mod you may copy `ConfigDefault.lua` to `moddata/DccWeaponEngineering/Config.lua` then any changes you make will persist when this mod gets updated.
 
