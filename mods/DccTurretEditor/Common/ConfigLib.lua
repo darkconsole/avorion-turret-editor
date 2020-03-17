@@ -23,6 +23,8 @@ local This = {
 	NearZeroFloat = 0.0,
 	TurretSlotMin = 0,
 	FixDefaultTargetingNerf = 0.0,
+	MountingRarityRequirement = 0,
+	MountingCountRequirement = 5,
 	Debug = false,
 
 	LoadDefault = function(self)
@@ -122,6 +124,9 @@ local This = {
 
 		if(self.FixDefaultTargetingNerf < 0.0)
 		then self.FixDefaultTargetingNerf = 0.0 end
+
+		if(self.MountingRarityRequirement < 0)
+		then self.MountingRarityRequirement = 0 end
 
 		return
 	end

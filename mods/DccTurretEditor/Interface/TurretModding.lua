@@ -796,6 +796,23 @@ function Win:GetBinCountOfType(ThisType)
 	return Result
 end
 
+function Win:ShouldAllowMountingUpgrade(Real)
+-- determine if we should allow this turret to have it mount upgraded.
+
+	local Minimum = Config.MountingRarityRequirement
+	local Lowest = self:GetBinLowestRarity()
+
+	-- if config is 0 then require equal or better.
+	-- if non-zero require that level or better.
+	-- if a higher number than rarity exists, they will never be allowed.
+
+	if(Minimum == 0) then
+		Minimum = TurretLib:GetWeaponRarityValue(Real)
+	end
+
+	return (Lowest >= Minimum)
+end
+
 --------------------------------------------------------------------------------
 
 function Win:UpdateItems(Mock,Real)
@@ -867,7 +884,11 @@ function Win:UpdateFields()
 		Size = TurretLib:GetWeaponSize(Item.item)
 		Slots = TurretLib:GetWeaponSlots(Item.item)
 
-		if(Slots > Config.TurretSlotMin and self:GetBinCount() == 5 and self:GetBinLowestRarity() >= 4) then
+		if
+			(Slots > Config.TurretSlotMin)
+			and (self:GetBinCount() >= Config.MountingCountRequirement)
+			and self:ShouldAllowMountingUpgrade(Item.item)
+		then
 			MountingEnable = true
 		end
 
@@ -1508,13 +1529,13 @@ function Win:OnClickedBtnMounting()
 		return
 	end
 
-	if(BinCount < 5) then
-		PrintError("Requires 5 exceptional turrets to be scrapped.")
+	if(BinCount < Config.MountingCountRequirement) then
+		PrintError("Requires " .. Config.MountingCountRequirement .. " turrets be scrapped.")
 		return
 	end
 
-	if(BinRarity < 4) then
-		PrintError("Requires 5 exceptional turrets to be scrapped.")
+	if(not self:ShouldAllowMountingUpgrade(Real)) then
+		PrintError("Scrapping requirements not met for upgrading the mounting.")
 		return
 	end
 
@@ -1804,7 +1825,17 @@ function TurretLib_PullConfigFromServer(ToPlayer,InputConfig)
 		-- config that the server sent us.
 
 		print("[DccTurretEditor] Received Config From Server")
-		Config = InputConfig
+		Config = include("mods/DccTurretEditor/Common/ConfigLib")
+		for Property,Value in pairs(Input) do
+			if(Config[Property] ~= nil) then
+				if(type(Value) == "table") then
+					Config[Property] = table.deepcopy(Value)
+				else
+					Config[Property] = Value
+				end
+			end
+		end
+
 	end
 
 end

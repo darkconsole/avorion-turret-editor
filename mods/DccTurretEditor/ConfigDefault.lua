@@ -42,6 +42,14 @@ local Config = {
 	-- checking if the turret has been modded before so you cant just drive it up
 	-- by going on off on off on off.
 
+	MountingRarityRequirement = 0,
+	-- setting this to a number like 4 will require you scrap 5 turrets of orange
+	-- quality or better. the default is 0 which means all 5 scrap must be of equal
+	-- quality or better.
+
+	MountingCountRequirement = 5,
+	-- how many turrets must be scrapped at once to upgrade amount.
+
 	Debug = true
 
 };
