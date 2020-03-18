@@ -140,7 +140,6 @@ function Win:OnInit()
 	self.Window.moveable = 1
 	self.UI:registerWindow(self.Window,self.Title)
 
-	self:BuildUI()
 	return
 end
 
@@ -515,6 +514,17 @@ function Win:BuildUI()
 	self.BtnMkFlak.rect = FramedRect(self.UpgradeFrame,1,9,Cols,Rows)
 	self.BtnMkFlak.tooltip = "Convert an Anti-Fighter turret into a flak barrier turret. Requries scrapping 5 other Anti-Fighter turrets for parts."
 
+	if(Config.Experimental) then
+		self.BtnMkCool = self.Window:createButton(
+			Rect(),
+			"Liquid Naonite Cooling System",
+			"TurretModdingUI_OnClickedBtnMkCool"
+		)
+		self.BtnMkCool.textSize = FontSize3
+		self.BtnMkCool.rect = FramedRect(self.UpgradeFrame,2,9,Cols,Rows)
+		self.BtnMkCool.tooltip = "Apply a Liquid Naonite Cooling System to this turret."
+	end
+
 	return
 end
 
@@ -796,6 +806,39 @@ function Win:GetBinCountOfType(ThisType)
 	return Result
 end
 
+function Win:GetBinSlotCount()
+-- count how many slots are in all the bin items total.
+
+	local ItemVec
+	local Item
+	local SlotCount = 0
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		SlotCount = SlotCount + TurretLib:GetWeaponSlots(Item.item)
+	end
+
+	return SlotCount
+end
+
+function Win:GetBinMountingUpgrade(Real)
+-- determine how many slots we should knock off.
+
+	local CurCount = TurretLib:GetWeaponSlots(Real)
+	local SlotCount = self:GetBinSlotCount()
+	local Result = math.floor(SlotCount / Config.MountingCountRequirement) - 1
+
+	-- the more slots a turret has GENERALLY the more powerful it is too. the game
+	-- theory we are using here though is that turrets that have high mounting costs
+	-- will give us more materials to reinforce this turrets mount with. this is one
+	-- of the few cases where scrapping something technically worse is better.
+
+	if(Result < 1) then
+		Result = 1
+	end
+
+	return Result
+end
+
 function Win:ShouldAllowMountingUpgrade(Real)
 -- determine if we should allow this turret to have it mount upgraded.
 
@@ -944,7 +987,7 @@ function Win:UpdateFields()
 	self.LblEfficiency.caption = (Efficiency * 100) .. "%"
 	self.LblEfficiency.color = ColourLight
 
-	self.BtnMounting.caption = "Reinforced Mount"
+	self.BtnMounting.caption = "Reinforced Mount (" .. self:GetBinMountingUpgrade(Real) .. ")"
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots
 
@@ -1518,13 +1561,15 @@ function Win:OnClickedBtnMounting()
 	local BinRarity = Win:GetBinLowestRarity()
 	local Mock, Real = Win:GetCurrentItems()
 	local CurrentValue = TurretLib:GetWeaponSlots(Real)
+	local BinValue = Win:GetBinMountingUpgrade(Real)
+	local NewValue = CurrentValue - BinValue
 
 	if(Mock == nil) then
 		PrintError("No turret selected")
 		return
 	end
 
-	if(CurrentValue <= 1) then
+	if(CurrentValue <= Config.TurretSlotMin) then
 		PrintError("This turret is already at minimum slot use.")
 		return
 	end
@@ -1539,7 +1584,11 @@ function Win:OnClickedBtnMounting()
 		return
 	end
 
-	TurretLib:SetWeaponSlots(Real,(CurrentValue - 1))
+	if(NewValue < Config.TurretSlotMin) then
+		NewValue = Config.TurretSlotMin
+	end
+
+	TurretLib:SetWeaponSlots(Real,NewValue)
 
 	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
@@ -1713,6 +1762,24 @@ function Win:OnClickedBtnMkFlak()
 	return
 end
 
+function Win:OnClickedBtnMkCool()
+
+	local Mock, Real = Win:GetCurrentItems()
+
+	local HeatRate = 0.0
+
+	-- costs to consider:
+	-- naonite obvs.
+	-- goods: high pressure tubes?
+	-- credits
+	-- accuracy penalties?
+
+	TurretLib:SetWeaponHeatRate(Real,HeatRate)
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function TurretModdingUI_Update(NewCurrentIndex)
@@ -1752,6 +1819,7 @@ function TurretModdingUI_OnClickedBtnCoaxial(...) Win:OnClickedBtnCoaxial(...) e
 function TurretModdingUI_OnClickedBtnSize(...) Win:OnClickedBtnSize(...) end
 function TurretModdingUI_OnClickedBtnMounting(...) Win:OnClickedBtnMounting(...) end
 function TurretModdingUI_OnClickedBtnMkFlak(...) Win:OnClickedBtnMkFlak(...) end
+function TurretModdingUI_OnClickedBtnMkCool(...) Win:OnClickedBtnMkCool(...) end
 
 --------------------------------------------------------------------------------
 
@@ -1812,20 +1880,21 @@ function TurretLib_PullConfigFromServer(ToPlayer,InputConfig)
 		-- when this function runs server side we need to load the config
 		-- and send it back to the client.
 
-		local InputConfig = include("mods/DccTurretEditor/Common/ConfigLib")
 		print("[DccTurretEditor] Sending Config To Client " .. Player(ToPlayer).index)
+
 		invokeClientFunction(
 			Player(ToPlayer),
 			"TurretLib_PullConfigFromServer",
 			ToPlayer,
-			InputConfig
+			Config
 		)
+
 	else
 		-- when this function runs on the client side we will store the
 		-- config that the server sent us.
 
 		print("[DccTurretEditor] Received Config From Server")
-		Config = include("mods/DccTurretEditor/Common/ConfigLib")
+
 		for Property,Value in pairs(Input) do
 			if(Config[Property] ~= nil) then
 				if(type(Value) == "table") then
@@ -1836,8 +1905,10 @@ function TurretLib_PullConfigFromServer(ToPlayer,InputConfig)
 			end
 		end
 
+		Win:BuildUI()
 	end
 
+	return
 end
 
 function initialize()
@@ -1853,6 +1924,7 @@ function initialize()
 	-- to repopulate the local var.
 
 	if(onClient()) then
+		Config = include("mods/DccTurretEditor/Common/ConfigLib") 
 		print("[DccTurretEditor] Asking Server For Config")
 		invokeServerFunction("TurretLib_PullConfigFromServer",Player().index,nil)
 	end

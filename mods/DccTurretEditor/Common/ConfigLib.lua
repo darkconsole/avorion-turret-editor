@@ -26,6 +26,7 @@ local This = {
 	MountingRarityRequirement = 0,
 	MountingCountRequirement = 5,
 	Debug = false,
+	Experimental = false,
 
 	LoadDefault = function(self)
 

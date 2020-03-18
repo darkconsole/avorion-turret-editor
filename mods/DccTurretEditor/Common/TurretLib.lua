@@ -698,6 +698,8 @@ function This:SetWeaponColour(Item,Colour)
 	-- screw with the colours the player set a little bit to create something
 	-- that visually looks slightly nicer in practice.
 
+	-- todo: ask for access to colour explosions.
+
 	local Colour1 = Color()
 	local Colour2 = Color()
 
@@ -715,12 +717,12 @@ function This:SetWeaponColour(Item,Colour)
 
 	for WeapIter,Weap in pairs(WeapList) do
 
-		if(Weap.isProjectile) then
+		--if(Weap.isProjectile) then
 			Weap.pcolor = Colour2
-		else
+		--else
 			Weap.binnerColor = Colour1
 			Weap.bouterColor = Colour2
-		end
+		--end
 
 		Item:addWeapon(Weap)
 	end
@@ -788,6 +790,17 @@ function This:ModWeaponHeatRate(Item,Per)
 	return
 end
 
+function This:SetWeaponHeatRate(Item,Value)
+-- set the heat rate for this turret.
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.heatPerShot = Value
+	return
+end
+
 --------
 
 function This:GetWeaponCoolRate(Item)
@@ -808,6 +821,19 @@ function This:ModWeaponCoolRate(Item,Per)
 	Item.coolingRate = Value
 	return
 end
+
+function This:SetWeaponCoolRate(Item,Value)
+-- set the cooling rate for this turret.
+
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.coolingRate = Value
+	return
+end
+	
 
 --------
 
@@ -830,6 +856,36 @@ function This:ModWeaponMaxHeat(Item,Per)
 	return
 end
 
+function This:SetWeaponMaxHeat(Item,Value)
+-- set a weapon's max heat.
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.maxHeat = Value
+	return
+end
+
+--------
+
+function This:GetWeaponCoolingType(Item)
+-- set a weapon's max heat.
+
+	return Item.coolingType
+end
+
+function This:SetWeaponCoolingType(Item,Value)
+-- set a weapon's max heat.
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.coolingType = Value
+	return
+end
+
 --------
 
 function This:GetWeaponBaseEnergy(Item)
@@ -842,6 +898,17 @@ function This:ModWeaponBaseEnergy(Item,Per)
 -- modify the base energy value by a percent.
 
 	local Value = ((Item.baseEnergyPerSecond * (Per / 100)) + Item.baseEnergyPerSecond)
+
+	if(Value < 0) then
+		Value = 0
+	end
+
+	Item.baseEnergyPerSecond = Value
+	return
+end
+
+function This:SetWeaponBaseEnergy(Item,Value)
+-- modify the base energy value by a percent.
 
 	if(Value < 0) then
 		Value = 0

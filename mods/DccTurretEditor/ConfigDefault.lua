@@ -50,7 +50,8 @@ local Config = {
 	MountingCountRequirement = 5,
 	-- how many turrets must be scrapped at once to upgrade amount.
 
-	Debug = true
+	Debug = true,
+	Experimental = false
 
 };
 
