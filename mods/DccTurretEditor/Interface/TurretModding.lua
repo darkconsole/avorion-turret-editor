@@ -825,18 +825,24 @@ function Win:GetBinMountingUpgrade(Real)
 
 	local CurCount = TurretLib:GetWeaponSlots(Real)
 	local SlotCount = self:GetBinSlotCount()
-	local Result = math.floor(SlotCount / Config.MountingCountRequirement) - 1
+	local Result
 
 	-- the more slots a turret has GENERALLY the more powerful it is too. the game
 	-- theory we are using here though is that turrets that have high mounting costs
 	-- will give us more materials to reinforce this turrets mount with. this is one
 	-- of the few cases where scrapping something technically worse is better.
 
+	Result = ((SlotCount / Config.MountingCountRequirement) - 1)
+	PrintDebug("[GetBinMountingUpgrade] Result: " .. Result)
+
 	if(Result < 1) then
 		Result = 1
 	end
 
-	return Result
+	-- using round instead of floor now to give you a small bump if you were
+	-- close to the next slot number. floor was really punishing imho.
+
+	return round(Result,0)
 end
 
 function Win:ShouldAllowMountingUpgrade(Real)
