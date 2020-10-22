@@ -25,7 +25,8 @@ function initialize(Command,...)
 	-- house clean both sides of the isle.
 
 	print("[DccTurretEditor] TURRET MODDING COMMAND LOAD")
-	Ship:removeScript(ScriptFile)
+	if(Ship:hasScript(ScriptFile))
+	then Ship:removeScript(ScriptFile) end
 
 	-- but from here on, do server side authority.
 
@@ -44,7 +45,7 @@ function initialize(Command,...)
 			"Did you RENAME ConfigDefault.lua? Don't do that."
 		)
 	end
-	
+
 	deferredCallback(
 		0, "TurretEditorCommand_AllRightLetsGo",
 		Uuid(PlayerRef.craftIndex).string

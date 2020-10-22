@@ -1,14 +1,19 @@
 
 function execute(PlayerID, Command, Action, ...)
 
+	local ScriptFile = "mods/DccTurretEditor/Commands/TurretModding"
+
 	if(not onServer())
 	then return end
 
-	Player(PlayerID)
-	:removeScript("mods/DccTurretEditor/Commands/TurretModding")
+	if(Player(PlayerID):hasScript(ScriptFile))
+	then
+		print("[DccTurretEditor] Clearing Old Instance...")
+		Player(PlayerID):removeScript(ScriptFile)
+	end
 
-	Player(PlayerID)
-	:addScriptOnce("mods/DccTurretEditor/Commands/TurretModding",Action,...)
+	print("[DccTurretEditor] Adding New Instance...")
+	Player(PlayerID):addScriptOnce(ScriptFile,Action,...)
 
 	return 0, "", ""
 end

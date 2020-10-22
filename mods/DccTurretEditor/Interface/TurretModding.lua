@@ -514,7 +514,7 @@ function Win:BuildUI()
 	self.BtnMkFlak.rect = FramedRect(self.UpgradeFrame,1,9,Cols,Rows)
 	self.BtnMkFlak.tooltip = "Convert an Anti-Fighter turret into a flak barrier turret. Requries scrapping 5 other Anti-Fighter turrets for parts."
 
-	if(Config.Experimental) then
+	--if(Config.Experimental) then
 		self.BtnMkCool = self.Window:createButton(
 			Rect(),
 			"Liquid Naonite Cooling System",
@@ -523,7 +523,7 @@ function Win:BuildUI()
 		self.BtnMkCool.textSize = FontSize3
 		self.BtnMkCool.rect = FramedRect(self.UpgradeFrame,2,9,Cols,Rows)
 		self.BtnMkCool.tooltip = "Apply a Liquid Naonite Cooling System to this turret."
-	end
+	--end
 
 	return
 end
@@ -823,7 +823,8 @@ end
 function Win:GetBinMountingUpgrade(Real)
 -- determine how many slots we should knock off.
 
-	local CurCount = TurretLib:GetWeaponSlots(Real)
+	local CurCount = Turr
+	etLib:GetWeaponSlots(Real)
 	local SlotCount = self:GetBinSlotCount()
 	local Result
 
