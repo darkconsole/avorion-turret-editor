@@ -824,7 +824,7 @@ function Win:GetBinMountingUpgrade(Real)
 -- determine how many slots we should knock off.
 
 	local CurCount = Turr
-	etLib:GetWeaponSlots(Real)
+	TurretLib:GetWeaponSlots(Real)
 	local SlotCount = self:GetBinSlotCount()
 	local Result
 
@@ -1220,7 +1220,7 @@ end
 ----------------
 
 function Win:OnInvClicked(SelectID, FX, FY, Item, Button)
-	
+
 	local ItemCount = self:GetItemCount()
 	local BinCount = self:GetBinCount()
 	local FromVec = ivec2(FX,FY)
@@ -1680,7 +1680,7 @@ end
 
 function Win:OnClickedBtnSize()
 -- change turrent size
-	
+
 	local Mock, Real = Win:GetCurrentItems()
 	local PlayerRef = Player()
 
@@ -1703,7 +1703,7 @@ end
 
 function Win:OnClickedBtnMkFlak()
 -- change turrent size
-	
+
 	local Mock, Real = Win:GetCurrentItems()
 	local BinCount = Win:GetBinCount()
 	local BinCountType = Win:GetBinCountOfType(WeaponAppearance.AntiFighter)
@@ -1754,7 +1754,7 @@ function Win:OnClickedBtnMkFlak()
 	if(not TurretLib:GetWeaponTargeting(Real)) then
 		TurretLib:SetWeaponTargeting(Real,true)
 	end
-	
+
 	-- allowing them to not be coaxial will probably make it easier to
 	-- minimise the number of them needed.
 
@@ -1791,7 +1791,7 @@ end
 
 function TurretModdingUI_Update(NewCurrentIndex)
 	print("[DccTurretEditor] Update Turret Editor UI")
-	
+
 	Win:PopulateInventory(NewCurrentIndex)
 	Win:UpdateFields()
 	Win:UpdateBinLabel()
@@ -1931,7 +1931,7 @@ function initialize()
 	-- to repopulate the local var.
 
 	if(onClient()) then
-		Config = include("mods/DccTurretEditor/Common/ConfigLib") 
+		Config = include("mods/DccTurretEditor/Common/ConfigLib")
 		print("[DccTurretEditor] Asking Server For Config")
 		invokeServerFunction("TurretLib_PullConfigFromServer",Player().index,nil)
 	end
