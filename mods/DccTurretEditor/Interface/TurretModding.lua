@@ -823,8 +823,7 @@ end
 function Win:GetBinMountingUpgrade(Real)
 -- determine how many slots we should knock off.
 
-	local CurCount = Turr
-	TurretLib:GetWeaponSlots(Real)
+	local CurCount = TurretLib:GetWeaponSlots(Real)
 	local SlotCount = self:GetBinSlotCount()
 	local Result
 
@@ -910,6 +909,7 @@ function Win:UpdateFields()
 	local Coaxial = false
 	local Size = 0
 	local Slots = 0
+	local SlotUpgrade = 0
 	local MountingEnable = false
 	local FixTargetingNerf = false
 
@@ -933,6 +933,7 @@ function Win:UpdateFields()
 		Coaxial = TurretLib:GetWeaponCoaxial(Item.item)
 		Size = TurretLib:GetWeaponSize(Item.item)
 		Slots = TurretLib:GetWeaponSlots(Item.item)
+		SlotUpgrade = self:GetBinMountingUpgrade(Item.item)
 
 		if
 			(Slots > Config.TurretSlotMin)
@@ -994,7 +995,7 @@ function Win:UpdateFields()
 	self.LblEfficiency.caption = (Efficiency * 100) .. "%"
 	self.LblEfficiency.color = ColourLight
 
-	self.BtnMounting.caption = "Reinforced Mount (" .. self:GetBinMountingUpgrade(Real) .. ")"
+	self.BtnMounting.caption = "Reinforced Mount (" .. SlotUpgrade .. ")"
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots
 
