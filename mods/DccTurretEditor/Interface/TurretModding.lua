@@ -891,6 +891,12 @@ function Win:ShouldAllowFlakConversion(Real)
 	return true
 end
 
+function Win:ShouldAllowCoolingSystem(Real)
+-- determine if we should allow this turret to be liquid cooled.
+
+	return true
+end
+
 --------------------------------------------------------------------------------
 
 function Win:UpdateItems(Mock,Real)
@@ -940,6 +946,8 @@ function Win:UpdateFields()
 	local Slots = 0
 	local SlotUpgrade = 0
 	local MountingEnable = false
+	local FlakEnable = false
+	local CoolingEnable = false
 	local FixTargetingNerf = false
 
 	if(Item ~= nil) then
@@ -972,9 +980,9 @@ function Win:UpdateFields()
 			MountingEnable = true
 		end
 
-		if(TurretLib:IsDefaultTargetingNerfFixable(Real)) then
-			FixTargetingNerf = true
-		end
+		FixTargetingNerf = TurretLib:IsDefaultTargetingNerfFixable(Real)
+		FlakEnable = Win:ShouldAllowFlakConversion(Real)
+		CoolingEnable = Win:ShouldAllowCoolingSystem(Real)
 	end
 
 	ColourDark:setHSV(0,0,0.3)
@@ -1054,11 +1062,8 @@ function Win:UpdateFields()
 		self.BtnDamage.caption = "Power Amplifiers"
 	end
 
-	if(Win:ShouldAllowFlakConversion(Real)) then
-		self.BtnMkFlak.active = true
-	else
-		self.BtnMkFlak.active = false
-	end
+	self.BtnMkFlak.active = FlakEnable
+	self.BtnMkCool.active = CoolingEnable
 
 	-- show everything.
 
