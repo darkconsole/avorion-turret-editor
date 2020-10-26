@@ -862,6 +862,18 @@ function Win:ShouldAllowMountingUpgrade(Real)
 	return (Lowest >= Minimum)
 end
 
+function Win:ShouldAllowFlakConversion(Real)
+-- determine if we should allow this turret to be converted.
+
+	if(TurretLib:GetWeaponRealType(Real) ~= WeaponAppearance.AntiFighter)
+	then return false end
+
+	if(Win:GetBinCountOfType(WeaponAppearance.AntiFighter) < Config.FlakCountRequirement)
+	then return false end
+
+	return true
+end
+
 --------------------------------------------------------------------------------
 
 function Win:UpdateItems(Mock,Real)
@@ -1025,10 +1037,7 @@ function Win:UpdateFields()
 		self.BtnDamage.caption = "Power Amplifiers"
 	end
 
-	if
-		(WeaponRealType == WeaponAppearance.AntiFighter)
-		and (Win:GetBinCount() == Config.FlakCountRequirement)
-	then
+	if(Win:ShouldAllowFlakConversion(Real)) then
 		self.BtnMkFlak.active = true
 	else
 		self.BtnMkFlak.active = false
@@ -1730,6 +1739,11 @@ function Win:OnClickedBtnMkFlak()
 
 	if(BinCountType < Config.FlakCountRequirement) then
 		PrintError("Requires at least " .. Config.FlakCountRequirement .. " Anti-Fighter turrets to be scrapped.")
+		return
+	end
+
+	if(not self:ShouldAllowFlakConversion(Real)) then
+		PrintError("Scrapping requirements not met for flak cannon conversion.")
 		return
 	end
 
