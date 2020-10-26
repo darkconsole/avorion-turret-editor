@@ -962,7 +962,7 @@ function Win:UpdateFields()
 	local MountingEnable = false
 	local FlakEnable = false
 	local CoolingEnable = false
-	local FixTargetingNerf = false
+	local FixTargetingNerfEnable = false
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
@@ -987,7 +987,7 @@ function Win:UpdateFields()
 		SlotUpgrade = self:GetBinMountingUpgrade(Item.item)
 
 		MountingEnable = self:ShouldAllowMountingUpgrade(Real)
-		FixTargetingNerf = TurretLib:IsDefaultTargetingNerfFixable(Real)
+		FixTargetingNerfEnable = TurretLib:IsDefaultTargetingNerfFixable(Real)
 		FlakEnable = Win:ShouldAllowFlakConversion(Real)
 		CoolingEnable = Win:ShouldAllowCoolingSystem(Real)
 	end
@@ -1043,7 +1043,7 @@ function Win:UpdateFields()
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots
 
-	if(FixTargetingNerf) then
+	if(FixTargetingNerfEnable) then
 		self.BtnTargeting.caption = "Fix Auto Nerf (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
 		self.BtnTargeting.tooltip = "Fixes automatic targeting nerf by removing targeting and fixing the damage values. You must then re-apply targeting afterwards."
 	end
