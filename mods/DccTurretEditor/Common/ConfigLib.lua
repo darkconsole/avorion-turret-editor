@@ -25,6 +25,7 @@ local This = {
 	FixDefaultTargetingNerf = 0.0,
 	MountingRarityRequirement = 0,
 	MountingCountRequirement = 5,
+	FlakCountRequirement = 3,
 	Debug = false,
 	Experimental = false,
 
@@ -128,6 +129,9 @@ local This = {
 
 		if(self.MountingRarityRequirement < 0)
 		then self.MountingRarityRequirement = 0 end
+
+		if(self.FlakCountRequirement < 0)
+		then self.FlakCountRequirement = 0 end;
 
 		return
 	end

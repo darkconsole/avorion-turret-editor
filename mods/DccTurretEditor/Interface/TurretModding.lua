@@ -512,7 +512,7 @@ function Win:BuildUI()
 	)
 	self.BtnMkFlak.textSize = FontSize3
 	self.BtnMkFlak.rect = FramedRect(self.UpgradeFrame,1,9,Cols,Rows)
-	self.BtnMkFlak.tooltip = "Convert an Anti-Fighter turret into a flak barrier turret. Requries scrapping 5 other Anti-Fighter turrets for parts."
+	self.BtnMkFlak.tooltip = "Convert an Anti-Fighter turret into a flak barrier turret. Requries scrapping " .. Config.FlakCountRequirement .. " other Anti-Fighter turrets for parts."
 
 	--if(Config.Experimental) then
 		self.BtnMkCool = self.Window:createButton(
@@ -1025,7 +1025,10 @@ function Win:UpdateFields()
 		self.BtnDamage.caption = "Power Amplifiers"
 	end
 
-	if(WeaponRealType == WeaponAppearance.AntiFighter) then
+	if
+		(WeaponRealType == WeaponAppearance.AntiFighter)
+		and (Win:GetBinCount() == Config.FlakCountRequirement)
+	then
 		self.BtnMkFlak.active = true
 	else
 		self.BtnMkFlak.active = false
@@ -1725,8 +1728,8 @@ function Win:OnClickedBtnMkFlak()
 		return
 	end
 
-	if(BinCountType < 3) then
-		PrintError("Requires at least 3 Anti-Fighter turrets to be scrapped.")
+	if(BinCountType < Config.FlakCountRequirement) then
+		PrintError("Requires at least " .. Config.FlakCountRequirement .. " Anti-Fighter turrets to be scrapped.")
 		return
 	end
 

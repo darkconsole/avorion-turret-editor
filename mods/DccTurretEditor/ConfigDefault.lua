@@ -50,6 +50,9 @@ local Config = {
 	MountingCountRequirement = 5,
 	-- how many turrets must be scrapped at once to upgrade amount.
 
+	FlakCountRequirement = 3,
+	-- how many turrets required to convert an af turret to a flak cannon.
+
 	Debug = true,
 	Experimental = false
 
