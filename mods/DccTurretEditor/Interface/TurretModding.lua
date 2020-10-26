@@ -414,7 +414,7 @@ function Win:BuildUI()
 	)
 	self.BtnMounting.textSize = FontSize3
 	self.BtnMounting.rect = FramedRect(self.UpgradeFrame,5,3,Cols,Rows)
-	self.BtnMounting.tooltip = "Reduces the slot cost.\nRequires 5 EXCEPTIONAL or better turrets."
+	self.BtnMounting.tooltip = Win:GetMountingUpgradeTooltip()
 
 	self.LblMounting = self.Window:createLabel(
 		Rect(),
@@ -704,6 +704,23 @@ function Win:GetBinLowestRarity()
 	end
 
 	return RarityLowest
+end
+
+function Win:GetMountingUpgradeTooltip()
+-- the tooltip for the mounting upgrade needs to be a little more dynamic than
+-- the other ones need.
+
+	local RarityWording = "equal or better quality"
+	local CountWording = Config.MountingCountRequirement
+
+	if(Config.MountingRarityRequirement == 0.5) then
+		RarityWording = Rarity(-1).name
+	elseif(Config.MountingRarityRequirement > 0) then
+		RarityWording = Rarity(Config.MountingRarityRequirement - 1).name .. " or better "
+	end
+
+
+	return "Reduces the slot cost.\nRequires scrapping " .. CountWording .. " " .. RarityWording ..  " turrets."
 end
 
 function Win:CalculateBinItems()

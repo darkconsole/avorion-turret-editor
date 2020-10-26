@@ -291,13 +291,13 @@ function This:FixDefaultTargetingNerf(Item)
 				if Weap.shieldRepair ~= 0. then
 					Weap.shieldRepair = Weap.shieldRepair * Config.FixDefaultTargetingNerf
 				end
-	
+
 				-- fix hull turrets.
 				if Weap.hullRepair ~= 0.0 then
 					Weap.hullRepair = Weap.hullRepair * Config.FixDefaultTargetingNerf
 				end
 			end
-	
+
 			Item:addWeapon(Weap)
 		end
 	end
@@ -541,7 +541,7 @@ function This:GetWeaponExplosion(Item)
 
 	return
 end
-	
+
 function This:ModWeaponExplosion(Item,Per)
 -- modify the explosion by a percent
 
@@ -761,6 +761,12 @@ function This:GetWeaponRarityValue(Item)
 	return Value
 end
 
+function This:GetWeaponRarityWord(Item)
+-- fetch the word that defines this rarity.
+
+	return Rarity(Item.rarity.value).name
+end
+
 --------
 
 function This:GetWeaponCategory(Item)
@@ -833,7 +839,7 @@ function This:SetWeaponCoolRate(Item,Value)
 	Item.coolingRate = Value
 	return
 end
-	
+
 
 --------
 
@@ -997,7 +1003,7 @@ function This:SetWeaponCoaxial(Item,Val)
 
 	return
 end
-	
+
 function This:ToggleWeaponCoaxial(Item)
 -- set automatic targeting.
 
@@ -1025,10 +1031,10 @@ end
 
 function This:GetWeaponSlots(Item)
 -- get this turret's size
-	
+
 	return Item.slots
 end
-	
+
 function This:SetWeaponSlots(Item,Val)
 -- set this turret's size
 
@@ -1041,7 +1047,7 @@ function This:SetWeaponSlots(Item,Val)
 	Item.slots = Val
 	return
 end
-	
+
 
 --------
 

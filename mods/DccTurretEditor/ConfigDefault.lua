@@ -45,7 +45,9 @@ local Config = {
 	MountingRarityRequirement = 0,
 	-- setting this to a number like 4 will require you scrap 5 turrets of orange
 	-- quality or better. the default is 0 which means all 5 scrap must be of equal
-	-- quality or better.
+	-- quality or better. it is using our math values not the game enums so 0.5 would
+	-- set it to the grey item requirement and 1 would be the white item, then +1
+	-- for each type after that. its because grey enum is -1.
 
 	MountingCountRequirement = 5,
 	-- how many turrets must be scrapped at once to upgrade amount.
