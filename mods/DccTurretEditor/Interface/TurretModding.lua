@@ -867,6 +867,20 @@ function Win:ShouldAllowMountingUpgrade(Real)
 
 	local Minimum = Config.MountingRarityRequirement
 	local Lowest = self:GetBinLowestRarity()
+	local BinCount = self:GetBinCount()
+	local SlotCount = TurretLib:GetWeaponSlots(Real)
+
+	-- if the turret is already at the configured minimum then no.
+
+	if(SlotCount <= Config.TurretSlotMin) then
+		return false
+	end
+
+	-- if there are not even enough itmems then no
+
+	if(BinCount < Config.MountingCountRequirement) then
+		return false
+	end
 
 	-- if config is 0 then require equal or better.
 	-- if non-zero require that level or better.
@@ -972,14 +986,7 @@ function Win:UpdateFields()
 		Slots = TurretLib:GetWeaponSlots(Item.item)
 		SlotUpgrade = self:GetBinMountingUpgrade(Item.item)
 
-		if
-			(Slots > Config.TurretSlotMin)
-			and (self:GetBinCount() >= Config.MountingCountRequirement)
-			and self:ShouldAllowMountingUpgrade(Item.item)
-		then
-			MountingEnable = true
-		end
-
+		MountingEnable = self:ShouldAllowMountingUpgrade(Real)
 		FixTargetingNerf = TurretLib:IsDefaultTargetingNerfFixable(Real)
 		FlakEnable = Win:ShouldAllowFlakConversion(Real)
 		CoolingEnable = Win:ShouldAllowCoolingSystem(Real)
@@ -1599,7 +1606,6 @@ end
 function Win:OnClickedBtnMounting()
 -- lower mounting cost
 
-	local BinCount = Win:GetBinCount()
 	local BinRarity = Win:GetBinLowestRarity()
 	local Mock, Real = Win:GetCurrentItems()
 	local CurrentValue = TurretLib:GetWeaponSlots(Real)
@@ -1613,11 +1619,6 @@ function Win:OnClickedBtnMounting()
 
 	if(CurrentValue <= Config.TurretSlotMin) then
 		PrintError("This turret is already at minimum slot use.")
-		return
-	end
-
-	if(BinCount < Config.MountingCountRequirement) then
-		PrintError("Requires " .. Config.MountingCountRequirement .. " turrets be scrapped.")
 		return
 	end
 
