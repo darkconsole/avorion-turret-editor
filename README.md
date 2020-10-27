@@ -1,6 +1,8 @@
 # Weapon Engineering: Avorion Turret Editor
 
-![Warning](https://img.shields.io/badge/BETA-Use%20At%20Your%20Own%20Risk-red.svg) ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.33.2-lightgrey.svg) ![Install Type](https://img.shields.io/badge/Install%20Type-Server%20%26%20Client-lightgrey.svg)
+![Install Type](https://img.shields.io/badge/Install%20Type-Server%20%26%20Client-lightgrey.svg)
+![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.33.2-lightgrey.svg)
+![Tested Avorion Version](https://img.shields.io/badge/Last%20Tested-1.3.1-lightgrey.svg)
 
 > *By the time we reach Jupiter Station, I don't want their engineers to have a
 > thing to do but give us a wash and a wax.*
@@ -46,8 +48,8 @@ some red beams and bullets.
 * Phase Filters - Increase the efficiency rating of mining or scav gun.
 * Targeting - Add or remove self targeting for the turret.
 * Colour HSV - Drag the sliders to change the colour of the beam or projectiles.
-* Reinforced Mounting - Reduce the slot cost of a turret. Requires 5 orange or better turrets to be scrapped in the process.
-* Convert Anti-Fighter Turret to Flak Cannon. 
+* Reinforced Mounting - Reduce the slot cost of a turret. Requires scrapping 5 of the same quality or better.
+* Convert Anti-Fighter Turret to Flak Cannon. Requires scrapping 3 other AF turrets
 
 
 
