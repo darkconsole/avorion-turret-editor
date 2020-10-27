@@ -706,6 +706,23 @@ function Win:GetBinLowestRarity()
 	return RarityLowest
 end
 
+function Win:GetBinTechLevel()
+-- get the average tech level of the bin.
+
+	local ItemVec
+	local Item
+
+	local TechLevel = 0
+	local Count = 0
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		TechLevel = TechLevel + TurretLib:GetWeaponTechLevel(Item.item)
+		Count = Count + 1
+	end
+
+	return round((TechLevel / Count),0)
+end
+
 function Win:GetMountingUpgradeTooltip()
 -- the tooltip for the mounting upgrade needs to be a little more dynamic than
 -- the other ones need.
@@ -723,7 +740,7 @@ function Win:GetMountingUpgradeTooltip()
 	return "Reduces the slot cost.\nRequires scrapping " .. CountWording .. " " .. RarityWording ..  " turrets."
 end
 
-function Win:CalculateBinItems()
+function Win:CalculateBinItemsOld()
 -- calculate the bin items buff value.
 
 	local BuffValue = 0.0
@@ -760,7 +777,7 @@ function Win:CalculateBinItems()
 
 	TechLevel = TechLevel / Count
 	if(TechLevel > Real.averageTech) then
-		TechLevel = Real.averageTech
+		-- TechLevel = Real.averageTech
 	end
 
 	TechPer = (TechLevel / Real.averageTech)
@@ -773,6 +790,51 @@ function Win:CalculateBinItems()
 	)
 
 	return BuffValue
+end
+
+function Win:CalculateBinItems()
+-- calculate the bin items buff value.
+
+	local Mock, Real = self:GetCurrentItems()
+	local ItemVec = nil
+	local Item = nil
+
+	local CountMax = 5
+	local Count = 0
+	local TechLevel = 0
+	local TechPer = 0
+	local RarityValue = 0
+	local RarityPer = 0
+	local FinalValue = 0
+
+	for ItemVec, Item in pairs(self.Bin:getItems()) do
+		Count = Count + 1
+		TechLevel = TechLevel + Item.item.averageTech
+		RarityValue = RarityValue + TurretLib:GetWeaponRarityValue(Item.item)
+	end
+
+	if(Count == 0) then
+		return 0
+	end
+
+	-- what i actually want is the average tech value of the scrapped items and
+	-- to compare it to the tech level of the turret in the machine.
+
+	TechLevel = (TechLevel / Count) * Config.TechMult
+	TechPer = (TechLevel / Real.averageTech) * (Count / CountMax)
+	RarityValue = (RarityValue / Count) * Config.RarityMult
+	RarityPer = (RarityValue / TurretLib:GetWeaponRarityValue(Real)) * (Count / CountMax)
+
+	FinalValue = TechPer + RarityPer
+
+	PrintDebug(
+		"TechLevel: ".. TechLevel ..":" .. Real.averageTech ..
+		", TechPercentage: " .. (TechPer * 100) .. "%" ..
+		", RarityPercentage: " .. (RarityPer * 100) .. "%" ..
+		", FinalValue: " .. FinalValue
+	)
+
+	return FinalValue
 end
 
 function Win:ConsumeBinItems()
@@ -850,7 +912,7 @@ function Win:GetBinMountingUpgrade(Real)
 	-- of the few cases where scrapping something technically worse is better.
 
 	Result = ((SlotCount / Config.MountingCountRequirement) - 1)
-	PrintDebug("[GetBinMountingUpgrade] Result: " .. Result)
+	--PrintDebug("[GetBinMountingUpgrade] Result: " .. Result)
 
 	if(Result < 1) then
 		Result = 1
@@ -915,7 +977,39 @@ end
 
 function Win:UpdateItems(Mock,Real)
 
+	local BinTech = self:GetBinTechLevel()
+	local RealTech = TurretLib:GetWeaponTechLevel(Real)
+	local NewTech = 0
+
+	-- first for any upgrade operation we need to also bump up the tech
+	-- level of the destination turret to curve our gains upon it.
+
+	if(BinTech >= RealTech) then
+		NewTech = RealTech + math.ceil((BinTech - RealTech) * Config.TechPostMult)
+
+		if(NewTech > BinTech) then
+			-- sanity check if someone brings the mult over 1 in the config.
+			NewTech = BinTech
+		elseif(NewTech == RealTech) then
+			-- if the result didn't change it, bump it anyway. also gives us
+			-- the "past max level" curve that made server admins qq.
+			NewTech = RealTech + Config.TechPostLevel
+		end
+
+		TurretLib:SetWeaponTechLevel(Real,NewTech)
+	end
+
+	-- also bump the weapon mk upgrade status to the next level.
+
 	TurretLib:BumpWeaponNameMark(Real)
+
+	-- finally consume the items in the bin.
+
+	self:ConsumeBinItems()
+
+	--------
+
+	print("[UpdateItems] BinTech: " .. BinTech .. "/" .. RealTech .. ", NewTech: " .. NewTech)
 
 	TurretLib:UpdatePlayerInventory(
 		Player().index,
@@ -1362,7 +1456,6 @@ function Win:OnClickedBtnHeat()
 	TurretLib:ModWeaponHeatRate(Real,((BuffValue + Config.NearZeroFloat) * -1))
 	TurretLib:ModWeaponCoolRate(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1390,7 +1483,6 @@ function Win:OnClickedBtnBaseEnergy()
 
 	TurretLib:ModWeaponBaseEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1418,7 +1510,6 @@ function Win:OnClickedBtnAccumEnergy()
 
 	TurretLib:ModWeaponAccumEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1446,7 +1537,6 @@ function Win:OnClickedBtnFireRate()
 
 	TurretLib:ModWeaponFireRate(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1474,7 +1564,6 @@ function Win:OnClickedBtnSpeed()
 
 	TurretLib:ModWeaponSpeed(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1502,7 +1591,6 @@ function Win:OnClickedBtnRange()
 
 	TurretLib:ModWeaponRange(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1530,7 +1618,6 @@ function Win:OnClickedBtnDamage()
 
 	TurretLib:ModWeaponDamage(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1564,7 +1651,6 @@ function Win:OnClickedBtnAccuracy()
 
 	TurretLib:ModWeaponAccuracy(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1598,7 +1684,6 @@ function Win:OnClickedBtnEfficiency()
 
 	TurretLib:ModWeaponEfficiency(Real,BuffValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end
@@ -1633,7 +1718,6 @@ function Win:OnClickedBtnMounting()
 
 	TurretLib:SetWeaponSlots(Real,NewValue)
 
-	self:ConsumeBinItems()
 	self:UpdateItems(Mock,Real)
 	return
 end

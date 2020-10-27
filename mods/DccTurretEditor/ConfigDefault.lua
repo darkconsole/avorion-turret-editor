@@ -1,9 +1,28 @@
 local Config = {
 
-	RarityMult = 0.1669,
-	-- how much the rarities get weighted. the default value of 0.1996 means
-	-- scrapping 5 white turrets will buff 0.7% while scrapping 5 legendary
-	-- turrets will buff 5%
+	TechMult = 1.0,
+	-- default value of 1.0 means the turret that is upgraded will
+	-- get 1% of an upgrade (before rarity config) if all the scrapped
+	-- turrets are the same tech level. as of 1.4 this is now the base
+	-- metric of turret upgrading
+
+	RarityMult = 0.20,
+	-- default value of 0.2 means if all the turrets are the same
+	-- rarity as the target, it will get 0.2% more in the grind.
+
+	TechPostMult = 0.5,
+	-- default value means the turret that is upgraded will have its
+	-- tech level increased for half of the difference between it and
+	-- the objects being scrapped.
+
+	TechPostLevel = 1,
+	-- default 1 means after a turret is max tech level, its tech level
+	-- will continue to be bumped by 1 each time it is upgraded which
+	-- in turns will deminish the upgrades over time unless you also
+	-- grind up even more turrets past the limit to use as scrap. this
+	-- also happens if the turret you upgraded is the same tech level
+	-- as the turrets you scrapped as a way to suggest you actually did
+	-- upgrade it.
 
 	CostColour = 2500,
 	-- how many credits to charge for a colour change.

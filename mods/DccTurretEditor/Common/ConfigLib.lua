@@ -14,6 +14,9 @@ local This = {
 	ConfFile = "Config.lua",
 
 	RarityMult = 0.0,
+	TechMult = 0.0,
+	TechPostMult = 0.0,
+	TechPostLevel = 1,
 	CostColour = 0,
 	CostTargeting = 0,
 	CostCoaxial = 0,

@@ -360,6 +360,59 @@ end
 
 --------
 
+function This:GetWeaponTechLevel(Item)
+-- get this weapon's tech level
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList) do
+		return Weap.tech
+	end
+
+	return
+end
+
+function This:ModWeaponTechLevel(Item,Per)
+-- modify the fire rate by a percent
+
+	local WeapList = {Item:getWeapons()}
+	local Value = 0
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Value = ((Weap.tech * (Per / 100)) + Weap.tech)
+
+		if(Value < 0) then
+			Value = 0
+		end
+
+		Weap.tech = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function This:SetWeaponTechLevel(Item,Value)
+-- modify the fire rate by a percent
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Value < 0) then
+			Value = 0
+		end
+
+		Weap.tech = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+--------
+
 function This:GetWeaponRange(Item)
 -- get weapon range in km.
 
