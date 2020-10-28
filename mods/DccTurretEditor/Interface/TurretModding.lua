@@ -147,7 +147,7 @@ function Win:BuildUI()
 
 	local Pane = UIHorizontalSplitter(
 		Rect(self.Window.size),
-		10, 10, 0.65
+		10, 10, 0.55
 	)
 
 	local BPane = UIHorizontalSplitter(
@@ -243,7 +243,7 @@ function Win:BuildUI()
 	)
 	self.BtnHeat.textSize = FontSize3
 	self.BtnHeat.rect = FramedRect(self.UpgradeFrame,1,1,Cols,Rows)
-	self.BtnHeat.tooltip = "Reduce the heat generated, increase cooldown rate."
+	self.BtnHeat.tooltip = "Reduce the heat generated per shot, improve cooldown rate per second."
 
 	self.LblHeat = self.Window:createLabel(
 		Rect(),
@@ -255,41 +255,25 @@ function Win:BuildUI()
 
 	--------
 
-	self.BtnBaseEnergy = self.Window:createButton(
+	self.BtnMaxHeat = self.Window:createButton(
 		Rect(),
 		"Capacitors",
-		"TurretModdingUI_OnClickedBtnBaseEnergy"
+		"TurretModdingUI_OnClickedBtnMaxHeat"
 	)
-	self.BtnBaseEnergy.textSize = FontSize3
-	self.BtnBaseEnergy.rect = FramedRect(self.UpgradeFrame,2,1,Cols,Rows)
-	self.BtnBaseEnergy.tooltip = "Reduce the base energy demand."
+	self.BtnMaxHeat.textSize = FontSize3
+	self.BtnMaxHeat.rect = FramedRect(self.UpgradeFrame,2,1,Cols,Rows)
+	self.BtnMaxHeat.tooltip = "Improve mounting heat dissipation."
 
-	self.LblBaseEnergy = self.Window:createLabel(
+	self.LblMaxHeat = self.Window:createLabel(
 		Rect(),
-		"$BASE_ENERGY",
+		"$MAX_HEAT",
 		FontSize3
 	)
-	self.LblBaseEnergy.rect = FramedRect(self.UpgradeFrame,2,2,Cols,Rows)
-	self.LblBaseEnergy.centered = true
+	self.LblMaxHeat.rect = FramedRect(self.UpgradeFrame,2,2,Cols,Rows)
+	self.LblMaxHeat.centered = true
 
 	--------
 
-	self.BtnAccumEnergy = self.Window:createButton(
-		Rect(),
-		"Transformers",
-		"TurretModdingUI_OnClickedBtnAccumEnergy"
-	)
-	self.BtnAccumEnergy.textSize = FontSize3
-	self.BtnAccumEnergy.rect = FramedRect(self.UpgradeFrame,3,1,Cols,Rows)
-	self.BtnAccumEnergy.tooltip = "Reduce the climbing energy demand."
-
-	self.LblAccumEnergy = self.Window:createLabel(
-		Rect(),
-		"$ACCUM_ENERGY",
-		FontSize3
-	)
-	self.LblAccumEnergy.rect = FramedRect(self.UpgradeFrame,3,2,Cols,Rows)
-	self.LblAccumEnergy.centered = true
 
 	--------
 
@@ -299,7 +283,7 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnDamage"
 	)
 	self.BtnDamage.textSize = FontSize3
-	self.BtnDamage.rect = FramedRect(self.UpgradeFrame,4,1,Cols,Rows)
+	self.BtnDamage.rect = FramedRect(self.UpgradeFrame,3,1,Cols,Rows)
 	self.BtnDamage.tooltip = "Increase the firepower."
 
 	self.LblDamage = self.Window:createLabel(
@@ -307,7 +291,7 @@ function Win:BuildUI()
 		"$DAMAGE",
 		FontSize3
 	)
-	self.LblDamage.rect = FramedRect(self.UpgradeFrame,4,2,Cols,Rows)
+	self.LblDamage.rect = FramedRect(self.UpgradeFrame,3,2,Cols,Rows)
 	self.LblDamage.centered = true
 
 	--------
@@ -318,7 +302,7 @@ function Win:BuildUI()
 		"TurretModdingUI_OnClickedBtnEfficiency"
 	)
 	self.BtnEfficiency.textSize = FontSize3
-	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,5,1,Cols,Rows)
+	self.BtnEfficiency.rect = FramedRect(self.UpgradeFrame,4,1,Cols,Rows)
 	self.BtnEfficiency.tooltip = "Increase the efficiency of mining and scav lasers."
 
 	self.LblEfficiency = self.Window:createLabel(
@@ -326,8 +310,27 @@ function Win:BuildUI()
 		"$EFFICIENCY",
 		FontSize3
 	)
-	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,5,2,Cols,Rows)
+	self.LblEfficiency.rect = FramedRect(self.UpgradeFrame,4,2,Cols,Rows)
 	self.LblEfficiency.centered = true
+
+	--------
+
+	self.BtnMounting = self.Window:createButton(
+		Rect(),
+		"Reinforced Mount",
+		"TurretModdingUI_OnClickedBtnMounting"
+	)
+	self.BtnMounting.textSize = FontSize3
+	self.BtnMounting.rect = FramedRect(self.UpgradeFrame,5,1,Cols,Rows)
+	self.BtnMounting.tooltip = Win:GetMountingUpgradeTooltip()
+
+	self.LblMounting = self.Window:createLabel(
+		Rect(),
+		"$MOUNTING",
+		FontSize3
+	)
+	self.LblMounting.rect = FramedRect(self.UpgradeFrame,5,2,Cols,Rows)
+	self.LblMounting.centered = true
 
 	--------
 
@@ -404,25 +407,6 @@ function Win:BuildUI()
 	)
 	self.LblAccuracy.rect = FramedRect(self.UpgradeFrame,4,4,Cols,Rows)
 	self.LblAccuracy.centered = true
-
-	--------
-
-	self.BtnMounting = self.Window:createButton(
-		Rect(),
-		"Reinforced Mount",
-		"TurretModdingUI_OnClickedBtnMounting"
-	)
-	self.BtnMounting.textSize = FontSize3
-	self.BtnMounting.rect = FramedRect(self.UpgradeFrame,5,3,Cols,Rows)
-	self.BtnMounting.tooltip = Win:GetMountingUpgradeTooltip()
-
-	self.LblMounting = self.Window:createLabel(
-		Rect(),
-		"$MOUNTING",
-		FontSize3
-	)
-	self.LblMounting.rect = FramedRect(self.UpgradeFrame,5,4,Cols,Rows)
-	self.LblMounting.centered = true
 
 	--------
 
@@ -970,12 +954,16 @@ end
 function Win:ShouldAllowCoolingSystem(Real)
 -- determine if we should allow this turret to be liquid cooled.
 
-	return true
+	if(TurretLib:GetWeaponHeatRate(Real) > 0) then
+		return true
+	end
+
+	return false
 end
 
 --------------------------------------------------------------------------------
 
-function Win:UpdateItems(Mock,Real)
+function Win:UpdateItems(Mock,Real,DontConsume)
 
 	local BinTech = self:GetBinTechLevel()
 	local RealTech = TurretLib:GetWeaponTechLevel(Real)
@@ -1005,7 +993,9 @@ function Win:UpdateItems(Mock,Real)
 
 	-- finally consume the items in the bin.
 
-	self:ConsumeBinItems()
+	if(DontConsume ~= true) then
+		self:ConsumeBinItems()
+	end
 
 	--------
 
@@ -1028,6 +1018,7 @@ function Win:UpdateFields()
 	-- again to find where the object moved to when it was edited last time
 	-- and force that into the main box before we continue.
 
+	local BuffValue = self:CalculateBinItems()
 	local Item, Real = self:GetCurrentItems()
 	local BackgroundColour
 	local ColourDark = Color()
@@ -1038,8 +1029,7 @@ function Win:UpdateFields()
 	local Category = 0
 	local HeatRate = 0
 	local CoolRate = 0
-	local BaseEnergy = 0
-	local AccumEnergy = 0
+	local MaxHeat = 0
 	local Damage = 0
 	local FireRate = 0
 	local Speed = 0
@@ -1058,14 +1048,24 @@ function Win:UpdateFields()
 	local CoolingEnable = false
 	local FixTargetingNerfEnable = false
 
+	local InfoFireRate = ""
+	local InfoRange = ""
+	local InfoDamage = ""
+	local InfoAccuracy = ""
+	local InfoEfficiency = ""
+	local InfoHeatRate = ""
+	local InfoCoolRate = ""
+	local InfoSpeed = ""
+	local InfoMaxHeat = ""
+	local InfoSlots = ""
+
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
 		WeaponRealType = TurretLib:GetWeaponRealType(Item.item)
 		Category = TurretLib:GetWeaponCategory(Item.item)
 		HeatRate = TurretLib:GetWeaponHeatRate(Item.item)
 		CoolRate = TurretLib:GetWeaponCoolRate(Item.item)
-		BaseEnergy = TurretLib:GetWeaponBaseEnergy(Item.item)
-		AccumEnergy = TurretLib:GetWeaponAccumEnergy(Item.item)
+		MaxHeat = TurretLib:GetWeaponMaxHeat(Item.item)
 		Damage = TurretLib:GetWeaponDamage(Item.item)
 		FireRate = TurretLib:GetWeaponFireRate(Item.item)
 		Speed = TurretLib:GetWeaponSpeed(Item.item)
@@ -1084,6 +1084,22 @@ function Win:UpdateFields()
 		FixTargetingNerfEnable = TurretLib:IsDefaultTargetingNerfFixable(Real)
 		FlakEnable = Win:ShouldAllowFlakConversion(Real)
 		CoolingEnable = Win:ShouldAllowCoolingSystem(Real)
+
+		InfoDamage = ", " .. round((Damage * FireRate * GunCount),2) .. " DPS"
+
+		if(BuffValue ~= 0) then
+			InfoFireRate = " (+" .. round((TurretLib:ModWeaponFireRate(Item.item,BuffValue,true) - FireRate),3) .. ")"
+			InfoRange = " (+" .. round((TurretLib:ModWeaponRange(Item.item,BuffValue,true) - Range),3) .. ")"
+			InfoDamage = InfoDamage .. "\n (+" .. round((TurretLib:ModWeaponDamage(Item.item,BuffValue,true) - Damage),3) .. ""
+			InfoDamage = InfoDamage .. ", " .. round((TurretLib:ModWeaponDamage(Item.item,BuffValue,true) * FireRate * GunCount),2) .. " DPS)"
+			InfoAccuracy = " (+" .. (round((TurretLib:ModWeaponAccuracy(Item.item,BuffValue,true) - Accuracy),4) * 100) .. "%)"
+			InfoEfficiency = " (+" .. (round((TurretLib:ModWeaponEfficiency(Item.item,BuffValue,true) - Efficiency),3) * 100) .. "%)"
+			InfoHeatRate = "\n (-" .. round((TurretLib:ModWeaponHeatRate(Item.item,BuffValue,true) - HeatRate),3) .. ")"
+			InfoCoolRate = " (+" .. round((TurretLib:ModWeaponCoolRate(Item.item,BuffValue,true) - CoolRate),3) .. ")"
+			InfoSpeed = " (+" .. round((TurretLib:ModWeaponSpeed(Item.item,BuffValue,true) - Speed),3) .. ")"
+			InfoMaxHeat = " (+" .. round((TurretLib:ModWeaponMaxHeat(Item.item,BuffValue,true) - MaxHeat),3) .. ")"
+			InfoSlots = " (-" .. SlotUpgrade ..  ")"
+		end
 	end
 
 	ColourDark:setHSV(0,0,0.3)
@@ -1098,44 +1114,48 @@ function Win:UpdateFields()
 	self.BtnSize.caption = "Scale (Cr. " .. toReadableValue(Config.CostSize) .. ")"
 
 	self.BtnHeat.caption = "Heat Sinks"
-	self.LblHeat.caption = HeatRate .. " Heat, " .. CoolRate .. " Cool"
+	self.LblHeat.caption = HeatRate .. " HPS, " .. CoolRate .. " CPS" .. InfoHeatRate .. InfoCoolRate
 	self.LblHeat.color = ColourLight
 
-	self.BtnBaseEnergy.caption = "Capacitors"
-	self.LblBaseEnergy.caption = BaseEnergy .. " Base EPS"
-	self.LblBaseEnergy.color = ColourLight
-
-	self.BtnAccumEnergy.caption = "Transformers"
-	self.LblAccumEnergy.caption = AccumEnergy .. " Accum EPS"
-	self.LblAccumEnergy.color = ColourLight
+	if(TurretLib:GetWeaponCoolingType(Real) == CoolingType.BatteryCharge) then
+		self.BtnMaxHeat.caption = "Battery"
+		self.BtnMaxHeat.tooltip = "Increase battery capacity."
+		self.LblMaxHeat.caption = MaxHeat .. InfoMaxHeat
+		self.LblMaxHeat.color = ColourLight
+	else
+		self.BtnMaxHeat.caption = "Radiators"
+		self.BtnMaxHeat.tooltip = "Improve mounting heat dissipation."
+		self.LblMaxHeat.caption = MaxHeat .. " Heat Dis." .. InfoMaxHeat
+		self.LblMaxHeat.color = ColourLight
+	end
 
 	self.BtnDamage.caption = "Ammunition"
-	self.LblDamage.caption = Damage .. " (" .. round((Damage * FireRate * GunCount),2) .. " DPS)"
+	self.LblDamage.caption = Damage .. InfoDamage
 	self.LblDamage.color = ColourLight
 
 	self.BtnFireRate.caption = "Trigger Mechanisms"
-	self.LblFireRate.caption = FireRate .. " RPS"
+	self.LblFireRate.caption = FireRate .. " RPS" .. InfoFireRate
 	self.LblFireRate.color = ColourLight
 
 	self.BtnSpeed.caption = "Drive Motors"
-	self.LblSpeed.caption = Speed
+	self.LblSpeed.caption = Speed .. InfoSpeed
 	self.LblSpeed.color = ColourLight
 
 	self.BtnRange.caption = "Barrel"
-	self.LblRange.caption = Range .. " KM"
+	self.LblRange.caption = Range .. " KM" .. InfoRange
 	self.LblRange.color = ColourLight
 
 	self.BtnAccuracy.caption = "Stabilizers"
-	self.LblAccuracy.caption = (Accuracy * 100) .. "%"
+	self.LblAccuracy.caption = (Accuracy * 100) .. "%" .. InfoAccuracy
 	self.LblAccuracy.color = ColourLight
 
 	self.BtnEfficiency.caption = "Phase Filters"
-	self.LblEfficiency.caption = (Efficiency * 100) .. "%"
+	self.LblEfficiency.caption = (Efficiency * 100) .. "%" .. InfoEfficiency
 	self.LblEfficiency.color = ColourLight
 
-	self.BtnMounting.caption = "Reinforced Mount (" .. SlotUpgrade .. ")"
+	self.BtnMounting.caption = "Reinforced Mount"
 	self.BtnMounting.active = MountingEnable
-	self.LblMounting.caption = Slots
+	self.LblMounting.caption = Slots .. InfoSlots
 
 	if(FixTargetingNerfEnable) then
 		self.BtnTargeting.caption = "Fix Auto Nerf (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
@@ -1169,24 +1189,22 @@ function Win:UpdateFields()
 	-- show everything.
 
 	self.BtnHeat:show()
-	self.BtnBaseEnergy:show()
-	self.BtnAccumEnergy:show()
+	self.BtnMaxHeat:show()
 	self.BtnDamage:show()
 	self.BtnSpeed:show()
 	self.BtnRange:show()
 	self.BtnFireRate:show()
-	self.BtnAccumEnergy:show()
+	self.BtnMaxHeat:show()
 	self.BtnCoaxial:show()
 	self.BtnSize:show()
 
 	self.LblHeat:show()
-	self.LblBaseEnergy:show()
-	self.LblAccumEnergy:show()
+	self.LblMaxHeat:show()
 	self.LblDamage:show()
 	self.LblSpeed:show()
 	self.LblRange:show()
 	self.LblFireRate:show()
-	self.LblAccumEnergy:show()
+	self.LblMaxHeat:show()
 	self.LblCoaxial:show()
 
 	self.NumSize:show()
@@ -1197,12 +1215,8 @@ function Win:UpdateFields()
 		self.LblHeat.color = ColourDark
 	end
 
-	if(BaseEnergy == 0) then
-		self.LblBaseEnergy.color = ColourDark
-	end
-
-	if(AccumEnergy == 0) then
-		self.LblAccumEnergy.color = ColourDark
+	if(MaxHeat == 0) then
+		self.LblMaxHeat.color = ColourDark
 	end
 
 	if(Damage == 0) then
@@ -1460,7 +1474,7 @@ function Win:OnClickedBtnHeat()
 	return
 end
 
-function Win:OnClickedBtnBaseEnergy()
+function Win:OnClickedBtnMaxHeat()
 -- lower power requirement.
 
 	local BuffValue = Win:CalculateBinItems()
@@ -1741,7 +1755,7 @@ function Win:OnClickedBtnTargeting()
 	TurretLib:ToggleWeaponTargeting(Real)
 	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostTargeting)
 
-	self:UpdateItems(Mock,Real)
+	self:UpdateItems(Mock,Real,true)
 	return
 end
 
@@ -1771,7 +1785,7 @@ function Win:OnClickedBtnColour()
 	TurretLib:SetWeaponColour(Real,NewColour)
 	TurretLib:PlayerPayCredits(PlayerRef.index,Config.CostColour)
 
-	self:UpdateItems(Mock,Real)
+	self:UpdateItems(Mock,Real,true)
 	return
 end
 
@@ -1794,7 +1808,7 @@ function Win:OnClickedBtnCoaxial()
 	TurretLib:ToggleWeaponCoaxial(Real)
 	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostCoaxial)
 
-	self:UpdateItems(Mock,Real)
+	self:UpdateItems(Mock,Real,true)
 	return
 end
 
@@ -1936,7 +1950,7 @@ function TurretModdingUI_OnUpdatePreviewColour(...) Win:OnUpdatePreviewColour(..
 function TurretModdingUI_OnUpdatePreviewSize(...) Win:OnUpdatePreviewSize(...) end
 
 function TurretModdingUI_OnClickedBtnHeat(...) Win:OnClickedBtnHeat(...) end
-function TurretModdingUI_OnClickedBtnBaseEnergy(...) Win:OnClickedBtnBaseEnergy(...) end
+function TurretModdingUI_OnClickedBtnMaxHeat(...) Win:OnClickedBtnMaxHeat(...) end
 function TurretModdingUI_OnClickedBtnAccumEnergy(...) Win:OnClickedBtnAccumEnergy(...) end
 function TurretModdingUI_OnClickedBtnFireRate(...) Win:OnClickedBtnFireRate(...) end
 function TurretModdingUI_OnClickedBtnSpeed(...) Win:OnClickedBtnSpeed(...) end

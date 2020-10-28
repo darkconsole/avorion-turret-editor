@@ -319,7 +319,7 @@ function This:GetWeaponFireRate(Item)
 	return
 end
 
-function This:ModWeaponFireRate(Item,Per)
+function This:ModWeaponFireRate(Item,Per,Dont)
 -- modify the fire rate by a percent
 
 	local WeapList = {Item:getWeapons()}
@@ -332,6 +332,8 @@ function This:ModWeaponFireRate(Item,Per)
 		if(Value < 0) then
 			Value = 0
 		end
+
+		if(Dont == true) then return Value end
 
 		Weap.fireRate = Value
 		Item:addWeapon(Weap)
@@ -372,7 +374,7 @@ function This:GetWeaponTechLevel(Item)
 	return
 end
 
-function This:ModWeaponTechLevel(Item,Per)
+function This:ModWeaponTechLevel(Item,Per,Dont)
 -- modify the fire rate by a percent
 
 	local WeapList = {Item:getWeapons()}
@@ -385,6 +387,8 @@ function This:ModWeaponTechLevel(Item,Per)
 		if(Value < 0) then
 			Value = 0
 		end
+
+		if(Dont == true) then return Value end
 
 		Weap.tech = Value
 		Item:addWeapon(Weap)
@@ -426,7 +430,7 @@ function This:GetWeaponRange(Item)
 	return
 end
 
-function This:ModWeaponRange(Item,Per)
+function This:ModWeaponRange(Item,Per,Dont)
 -- modify the range by a percent
 
 	local WeapList = {Item:getWeapons()}
@@ -439,6 +443,8 @@ function This:ModWeaponRange(Item,Per)
 		if(Value < 0) then
 			Value = 0
 		end
+
+		if(Dont == true) then return Value / 100 end
 
 		Weap.reach = Value
 		Item:addWeapon(Weap)
@@ -482,7 +488,7 @@ function This:GetWeaponDamage(Item)
 	return
 end
 
-function This:ModWeaponDamage(Item,Per)
+function This:ModWeaponDamage(Item,Per,Dont)
 -- modify the range by a percent
 
 	local WeapList = {Item:getWeapons()}
@@ -495,6 +501,8 @@ function This:ModWeaponDamage(Item,Per)
 		if(Value < 0) then
 			Value = 0
 		end
+
+		if(Dont == true) then return Value end
 
 		Weap.damage = Value
 		Item:addWeapon(Weap)
@@ -536,7 +544,7 @@ function This:GetWeaponAccuracy(Item)
 	return
 end
 
-function This:ModWeaponAccuracy(Item,Per)
+function This:ModWeaponAccuracy(Item,Per,Dont)
 -- set the accuracy
 
 	local WeapList = {Item:getWeapons()}
@@ -551,6 +559,8 @@ function This:ModWeaponAccuracy(Item,Per)
 		elseif(Value > 1) then
 			Value = 1.0
 		end
+
+		if(Dont == true) then return Value end
 
 		Weap.accuracy = Value
 		Item:addWeapon(Weap)
@@ -595,7 +605,7 @@ function This:GetWeaponExplosion(Item)
 	return
 end
 
-function This:ModWeaponExplosion(Item,Per)
+function This:ModWeaponExplosion(Item,Per,Dont)
 -- modify the explosion by a percent
 
 	local WeapList = {Item:getWeapons()}
@@ -608,6 +618,8 @@ function This:ModWeaponExplosion(Item,Per)
 		if(Value < 0) then
 			Value = 0.0
 		end
+
+		if(Dont == true) then return Value end
 
 		Weap.explosionRadius = Value
 		Item:addWeapon(Weap)
@@ -664,7 +676,7 @@ function This:GetWeaponEfficiency(Item)
 	return
 end
 
-function This:ModWeaponEfficiency(Item,Per)
+function This:ModWeaponEfficiency(Item,Per,Dont)
 -- modify the accuracy by a percent, autodetecting mining or scav.
 
 	local WeapList = {Item:getWeapons()}
@@ -695,6 +707,8 @@ function This:ModWeaponEfficiency(Item,Per)
 		elseif(Value > 1) then
 			Value = 1.0
 		end
+
+		if(Dont == true) then return Value end
 
 		-- it appears there is a bug where stone and metal eff may not be
 		-- included in the decision on if items should stack or not. so,
@@ -836,7 +850,7 @@ function This:GetWeaponHeatRate(Item)
 	return round(Item.heatPerShot,3)
 end
 
-function This:ModWeaponHeatRate(Item,Per)
+function This:ModWeaponHeatRate(Item,Per,Dont)
 -- modify the heat per shot value by a percent.
 
 	local Value = ((Item.heatPerShot * (Per / 100)) + Item.heatPerShot)
@@ -844,6 +858,8 @@ function This:ModWeaponHeatRate(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.heatPerShot = Value
 	return
@@ -868,7 +884,7 @@ function This:GetWeaponCoolRate(Item)
 	return round(Item.coolingRate,3)
 end
 
-function This:ModWeaponCoolRate(Item,Per)
+function This:ModWeaponCoolRate(Item,Per,Dont)
 -- modify the cooling rate value by a percent.
 
 	local Value = ((Item.coolingRate * (Per / 100)) + Item.coolingRate)
@@ -876,6 +892,8 @@ function This:ModWeaponCoolRate(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.coolingRate = Value
 	return
@@ -893,7 +911,6 @@ function This:SetWeaponCoolRate(Item,Value)
 	return
 end
 
-
 --------
 
 function This:GetWeaponMaxHeat(Item)
@@ -902,7 +919,7 @@ function This:GetWeaponMaxHeat(Item)
 	return round(Item.maxHeat,3)
 end
 
-function This:ModWeaponMaxHeat(Item,Per)
+function This:ModWeaponMaxHeat(Item,Per,Dont)
 -- modify the max heat value by a percent.
 
 	local Value = ((Item.maxHeat * (Per / 100)) + Item.maxHeat)
@@ -910,6 +927,8 @@ function This:ModWeaponMaxHeat(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.maxHeat = Value
 	return
@@ -953,7 +972,7 @@ function This:GetWeaponBaseEnergy(Item)
 	return round(Item.baseEnergyPerSecond,3)
 end
 
-function This:ModWeaponBaseEnergy(Item,Per)
+function This:ModWeaponBaseEnergy(Item,Per,Dont)
 -- modify the base energy value by a percent.
 
 	local Value = ((Item.baseEnergyPerSecond * (Per / 100)) + Item.baseEnergyPerSecond)
@@ -961,6 +980,8 @@ function This:ModWeaponBaseEnergy(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.baseEnergyPerSecond = Value
 	return
@@ -985,7 +1006,7 @@ function This:GetWeaponAccumEnergy(Item)
 	return round(Item.energyIncreasePerSecond,3)
 end
 
-function This:ModWeaponAccumEnergy(Item,Per)
+function This:ModWeaponAccumEnergy(Item,Per,Dont)
 -- modify the energy accumulation value by a percent.
 
 	local Value = ((Item.energyIncreasePerSecond * (Per / 100)) + Item.energyIncreasePerSecond)
@@ -993,6 +1014,8 @@ function This:ModWeaponAccumEnergy(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.energyIncreasePerSecond = Value
 	return
@@ -1006,7 +1029,7 @@ function This:GetWeaponSpeed(Item)
 	return round(Item.turningSpeed,3)
 end
 
-function This:ModWeaponSpeed(Item,Per)
+function This:ModWeaponSpeed(Item,Per,Dont)
 -- modify the tracking speed value by a percent.
 
 	local Value = ((Item.turningSpeed * (Per / 100)) + Item.turningSpeed)
@@ -1014,6 +1037,8 @@ function This:ModWeaponSpeed(Item,Per)
 	if(Value < 0) then
 		Value = 0
 	end
+
+	if(Dont == true) then return Value end
 
 	Item.turningSpeed = Value
 	return
@@ -1100,7 +1125,6 @@ function This:SetWeaponSlots(Item,Val)
 	Item.slots = Val
 	return
 end
-
 
 --------
 
