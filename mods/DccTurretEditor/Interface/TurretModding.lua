@@ -954,11 +954,15 @@ end
 function Win:ShouldAllowCoolingSystem(Real)
 -- determine if we should allow this turret to be liquid cooled.
 
-	if(TurretLib:GetWeaponHeatRate(Real) > 0) then
-		return true
+	if(Config.CostCoolingMoney == -1) then
+		return false
 	end
 
-	return false
+	if(TurretLib:GetWeaponHeatRate(Real) <= 0) then
+		return false
+	end
+
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -1831,7 +1835,7 @@ function Win:OnClickedBtnSize()
 	TurretLib:SetWeaponSize(Real,(self.NumSize.value))
 	TurretLib:PlayerPayCredits(PlayerRef.index, Config.CostSize)
 
-	self:UpdateItems(Mock,Real)
+	self:UpdateItems(Mock,Real,true)
 	return
 end
 
@@ -1911,8 +1915,29 @@ end
 function Win:OnClickedBtnMkCool()
 
 	local Mock, Real = Win:GetCurrentItems()
-
+	local PlayerRef = Player()
 	local HeatRate = 0.0
+	local Payment = nil
+
+	Payment = (
+		TurretLib:CreatePaymentTable()
+		:SetMoney(Config.CostCoolingMoney)
+		:SetMaterial(MaterialType.Naonite,Config.CostCoolingNaonite)
+	)
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	local CanPay, Msg, Args = PlayerRef:canPay(unpack(Payment))
+
+	if(not CanPay) then
+		PlayerRef:sendChatMessage("",1,Msg,unpack(Args))
+		return
+	end
+
+	TurretLib:PlayerPay(PlayerRef.index,Payment)
 
 	-- costs to consider:
 	-- naonite obvs.

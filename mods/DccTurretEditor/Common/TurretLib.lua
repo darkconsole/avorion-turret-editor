@@ -2,6 +2,27 @@
 local This = {};
 local Config = include("mods/DccTurretEditor/Common/ConfigLib")
 
+function This:CreatePaymentTable()
+
+	local Key = 1
+	local Payment = {}
+
+	for Key = 1, MaterialType.Avorion+2
+	do Payment[Key] = 0 end
+
+	Payment.SetMoney = function(self,Amount)
+		self[1] = Amount
+		return self
+	end
+
+	Payment.SetMaterial = function(self,MatType,Amount)
+		self[MatType+2] = Amount
+		return self
+	end
+
+	return Payment
+end
+
 --------------------------------------------------------------------------------
 -- these things are used by the ui to perform authoritive tasks on the server
 -- and then have the server phone home to the ui.
@@ -23,6 +44,26 @@ function TurretLib_ServerCallback_PlayerPayCredits(PlayerID,Amount)
 end
 
 callable(nil,"TurretLib_ServerCallback_PlayerPayCredits")
+
+--------
+
+function This:PlayerPay(PlayerID,PaymentTable)
+	if(onClient()) then
+		return invokeServerFunction(
+			"TurretLib_ServerCallback_PlayerPay",
+			PlayerID,
+			PaymentTable
+		)
+	end
+end
+
+function TurretLib_ServerCallback_PlayerPay(PlayerID,PaymentTable)
+
+	Player(PlayerID):pay("",unpack(PaymentTable))
+	return
+end
+
+callable(nil,"TurretLib_ServerCallback_PlayerPay")
 
 --------
 

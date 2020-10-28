@@ -36,6 +36,11 @@ local Config = {
 	CostSize = 1000,
 	-- how many credits to charge to change the turret visual size.
 
+	CostCoolingMoney = 50000,
+	CostCoolingNaonite = 20000,
+	-- cost to apply a liquid naonite cooling system to a turret, which will
+	-- remove the heat penalties. set money to -1 to disable for your server.
+
 	Colour1Mod = { Sat = 0.70, Val = 0.90 },
 	-- when the user picks a colour modify it by this amount to try and make
 	-- beams look nicer. default, Sat = 0.5, Val = 0.9 strip colour from core.

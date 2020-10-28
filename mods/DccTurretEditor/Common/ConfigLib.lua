@@ -21,6 +21,8 @@ local This = {
 	CostTargeting = 0,
 	CostCoaxial = 0,
 	CostSize = 0,
+	CostCoolingMoney = 0,
+	CostCoolingNaonite = 0,
 	Colour1Mod = { Sat=1.0, Val=1.0 },
 	Colour2Mod = { Sat=1.0, Val=1.0 },
 	NearZeroFloat = 0.0,
