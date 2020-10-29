@@ -1098,7 +1098,7 @@ function Win:UpdateFields()
 			InfoDamage = InfoDamage .. ", " .. round((TurretLib:ModWeaponDamage(Item.item,BuffValue,true) * FireRate * GunCount),2) .. " DPS)"
 			InfoAccuracy = " (+" .. (round((TurretLib:ModWeaponAccuracy(Item.item,BuffValue,true) - Accuracy),4) * 100) .. "%)"
 			InfoEfficiency = " (+" .. (round((TurretLib:ModWeaponEfficiency(Item.item,BuffValue,true) - Efficiency),3) * 100) .. "%)"
-			InfoHeatRate = "\n (-" .. round((TurretLib:ModWeaponHeatRate(Item.item,BuffValue,true) - HeatRate),3) .. ")"
+			InfoHeatRate = "\n (-" .. round((TurretLib:ModWeaponHeatRate(Item.item,(BuffValue + Config.NearZeroFloat),true) - HeatRate),3) .. ")"
 			InfoCoolRate = " (+" .. round((TurretLib:ModWeaponCoolRate(Item.item,BuffValue,true) - CoolRate),3) .. ")"
 			InfoSpeed = " (+" .. round((TurretLib:ModWeaponSpeed(Item.item,BuffValue,true) - Speed),3) .. ")"
 			InfoMaxHeat = " (+" .. round((TurretLib:ModWeaponMaxHeat(Item.item,BuffValue,true) - MaxHeat),3) .. ")"
@@ -1494,39 +1494,12 @@ function Win:OnClickedBtnMaxHeat()
 		return
 	end
 
-	if(TurretLib:GetWeaponBaseEnergy(Real) == 0) then
-		PrintWarning("This turret does not require any power")
+	if(TurretLib:GetWeaponMaxHeat(Real) == 0) then
+		PrintWarning("This turret does not take any heat.")
 		return
 	end
 
-	TurretLib:ModWeaponBaseEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
-
-	self:UpdateItems(Mock,Real)
-	return
-end
-
-function Win:OnClickedBtnAccumEnergy()
--- lower power useage.
-
-	local BuffValue = Win:CalculateBinItems()
-	local Mock, Real = Win:GetCurrentItems()
-
-	if(Mock == nil) then
-		PrintError("No turret selected")
-		return
-	end
-
-	if(BuffValue == 0.0) then
-		PrintError("No turrets in scrap bin")
-		return
-	end
-
-	if(TurretLib:GetWeaponAccumEnergy(Real) == 0) then
-		PrintWarning("This turret does not demand additional power")
-		return
-	end
-
-	TurretLib:ModWeaponAccumEnergy(Real,((BuffValue + Config.NearZeroFloat) * -1))
+	TurretLib:ModWeaponMaxHeat(Real,BuffValue)
 
 	self:UpdateItems(Mock,Real)
 	return
