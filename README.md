@@ -69,6 +69,10 @@ Flak Cannon Videos:
 * https://streamable.com/0i4fd
 * https://streamable.com/zohs5
 
+### Liquid Naonite Cooling
+
+You can remove the heat penalty of a turret by attaching a Liquid Naonite cooling system to it. This costs a sum of credits for parts and a good amount of Naonite, as the process of purification and liquidification only a few key compounds from the ore are actually useful for the cooling system. Server admins may disable this.
+
 
 
 ## Install
