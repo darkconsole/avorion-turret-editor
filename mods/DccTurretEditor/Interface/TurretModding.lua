@@ -1051,6 +1051,7 @@ function Win:UpdateFields()
 	local FlakEnable = false
 	local CoolingEnable = false
 	local FixTargetingNerfEnable = false
+	local CoolingTypeBattery = false
 
 	local InfoFireRate = ""
 	local InfoRange = ""
@@ -1088,6 +1089,7 @@ function Win:UpdateFields()
 		FixTargetingNerfEnable = TurretLib:IsDefaultTargetingNerfFixable(Real)
 		FlakEnable = Win:ShouldAllowFlakConversion(Real)
 		CoolingEnable = Win:ShouldAllowCoolingSystem(Real)
+		CoolingTypeBattery = TurretLib:GetWeaponCoolingType(Real) == CoolingType.BatteryCharge
 
 		InfoDamage = ", " .. round((Damage * FireRate * GunCount),2) .. " DPS"
 
@@ -1121,7 +1123,7 @@ function Win:UpdateFields()
 	self.LblHeat.caption = HeatRate .. " HPS, " .. CoolRate .. " CPS" .. InfoHeatRate .. InfoCoolRate
 	self.LblHeat.color = ColourLight
 
-	if(TurretLib:GetWeaponCoolingType(Real) == CoolingType.BatteryCharge) then
+	if(CoolingTypeBattery) then
 		self.BtnMaxHeat.caption = "Battery"
 		self.BtnMaxHeat.tooltip = "Increase battery capacity."
 		self.LblMaxHeat.caption = MaxHeat .. InfoMaxHeat
