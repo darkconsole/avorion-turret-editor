@@ -2070,9 +2070,7 @@ function initialize()
 	-- to repopulate the local var.
 
 	if(onClient()) then
-		Config = include("mods/DccTurretEditor/Common/ConfigLib")
-		print("[DccTurretEditor] Asking Server For Config")
-		invokeServerFunction("TurretLib_PullConfigFromServer",Player().index,nil)
+
 	end
 
 	return
@@ -2085,6 +2083,9 @@ function initUI()
 	then return end
 
 	Win:OnInit()
+	Config = include("mods/DccTurretEditor/Common/ConfigLib")
+	print("[DccTurretEditor] Asking Server For Config")
+	invokeServerFunction("TurretLib_PullConfigFromServer",Player().index,nil)
 	return
 end
 
