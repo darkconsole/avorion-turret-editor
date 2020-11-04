@@ -316,6 +316,10 @@ function This:FixDefaultTargetingNerf(Item)
 	local WeapList = {Item:getWeapons()}
 	local Weap = nil
 	local WeapIter = nil
+	local Infos = nil
+	local InfoIter = nil
+	local InfoText = nil
+
 	Item:clearWeapons()
 
 	if(Config.FixDefaultTargetingNerf ~= 0.0) then
@@ -340,6 +344,18 @@ function This:FixDefaultTargetingNerf(Item)
 			end
 
 			Item:addWeapon(Weap)
+		end
+
+		-- clear out the description they set for these now.
+
+		Infos = Item:getDescriptions()
+		Item:clearDescriptions()
+		Item:addDescription("[WeapEng] Indep. Targeting Unnerfed","")
+
+		for InfoIter,InfoText in pairs(Infos) do
+			if(InfoIter ~= "Indep. Targeting: %s%% Damage"%_T) then
+				Item:addDescription(InfoIter,InfoText)
+			end
 		end
 	end
 
