@@ -171,6 +171,24 @@ end
 
 callable(nil,"TurretLib_ServerCallback_ConsumePlayerInventory")
 
+--------
+
+function This:IsFinite(Value)
+-- avorion does not seem to have access to math.finite, isinf, or isnan.
+
+	local STT = tostring(Value):lower()
+
+	if
+		STT == "inf" or STT == "nan"
+		or STT == "1.#inf" or STT == "1.#ind"
+		or STT == "-1.#inf" or STT == "-1.#ind"
+		or STT == "#inf" or STT == "#ind"
+	then
+		return false
+	end
+
+	return true
+end
 --------------------------------------------------------------------------------
 -- these ones need to deal with each individual weapon on the turret -----------
 
@@ -918,18 +936,38 @@ function This:ModWeaponHeatRate(Item,Per,Dont)
 
 	if(Dont == true) then return Value end
 
-	Item.heatPerShot = Value
+	This:SetWeaponHeatRate(Item,Value)
 	return
 end
 
 function This:SetWeaponHeatRate(Item,Value)
 -- set the heat rate for this turret.
 
-	if(Value < 0) then
+	if(Value <= 0) then
 		Value = 0
 	end
 
 	Item.heatPerShot = Value
+
+	-- thanks to the LNCS players found the cause of a game error
+	-- where fighter factories end up paying you for a turret. if
+	-- heat sinks zero'd our (or near) enough but the heat
+	-- generator value is still non zero their math would explode.
+	-- but then when they applied the cooling system that would fix it.
+	-- this was due to the vanilla scripts as of 2020-11-09 incorrectly
+	-- checking for failed math and then doing more math on it. the cause
+	-- was basically, "yes, this gun generates heat, but it can still
+	-- "shoot forever" - so when you cross that threshold, we will correct
+	-- this so vanilla scripts play nice. if it *can* shoot forever then
+	-- the heat generation is pointless anyway.
+
+	if(not This:IsFinite(Item.shootingTime)) then
+		Item.heatPerShot = 0.0
+		Item.coolingRate = 0.0
+		Item.coolingType = CoolingType.Standard
+		Item:addDescription("[WeapEng] Fighter Factory Fix Applied (Heat Sinks)","")
+	end
+
 	return
 end
 
