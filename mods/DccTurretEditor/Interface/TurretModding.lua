@@ -977,7 +977,8 @@ function Win:UpdateItems(Mock,Real,DontConsume)
 	-- level of the destination turret to curve our gains upon it.
 
 	if(BinTech >= RealTech) then
-		NewTech = RealTech + math.ceil((BinTech - RealTech) * Config.TechPostMult)
+		-- NewTech = RealTech + math.ceil((BinTech - RealTech) * Config.TechPostMult)
+		NewTech = RealTech + 1
 
 		if(NewTech > BinTech) then
 			-- sanity check if someone brings the mult over 1 in the config.
