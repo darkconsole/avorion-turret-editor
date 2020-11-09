@@ -6,7 +6,7 @@ meta = {
 	title = "Weapon Engineering",
 	description = "Grind turrets into other more useful turrets.",
 	authors = { "darkconsole" },
-	version = "1.6.2",
+	version = "1.6.3",
 	dependencies = {
 		{ id = "Avorion", min = "0.32", max = "9001.0" }
 	},
