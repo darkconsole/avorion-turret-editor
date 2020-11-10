@@ -1064,7 +1064,7 @@ function Win:UpdateFields()
 	local Size = 0
 	local Slots = 0
 	local SlotUpgrade = 0
-	local PSpeed = 0
+	local PSpeed = nil
 	local MountingEnable = false
 	local FlakEnable = false
 	local CoolingEnable = false
@@ -1180,15 +1180,18 @@ function Win:UpdateFields()
 	self.LblAccuracy.color = ColourLight
 
 	self.BtnEfficiency.caption = "Phase Filters"
+	self.BtnEfficiency.active = (Efficiency > 0 and Efficiency < 1)
 	self.LblEfficiency.caption = (Efficiency * 100) .. "%" .. InfoEfficiency
 	self.LblEfficiency.color = ColourLight
 
 	self.BtnMounting.caption = "Reinforced Mount"
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots .. InfoSlots
+	self.LblMounting.color = ColourLight
 
 	self.BtnProjectileSpeed.active = (PSpeed ~= nil)
 	self.LblProjectileSpeed.caption = (PSpeed or "") .. InfoPSpeed
+	self.LblProjectileSpeed.color = ColourLight
 
 	if(FixTargetingNerfEnable) then
 		self.BtnTargeting.caption = "Fix Auto Nerf (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
@@ -1219,28 +1222,6 @@ function Win:UpdateFields()
 	self.BtnMkFlak.active = FlakEnable
 	self.BtnMkCool.active = CoolingEnable
 
-	-- show everything.
-
-	self.BtnHeat:show()
-	self.BtnMaxHeat:show()
-	self.BtnDamage:show()
-	self.BtnSpeed:show()
-	self.BtnRange:show()
-	self.BtnFireRate:show()
-	self.BtnMaxHeat:show()
-	self.BtnCoaxial:show()
-	self.BtnSize:show()
-
-	self.LblHeat:show()
-	self.LblMaxHeat:show()
-	self.LblDamage:show()
-	self.LblSpeed:show()
-	self.LblRange:show()
-	self.LblFireRate:show()
-	self.LblMaxHeat:show()
-	self.LblCoaxial:show()
-
-	self.NumSize:show()
 
 	-- hide things that make no sense to edit for this turret.
 
@@ -1274,6 +1255,14 @@ function Win:UpdateFields()
 
 	if((Efficiency == 0) or (Efficiency == 1)) then
 		self.LblEfficiency.color = ColourDark
+	end
+
+	if(PSpeed == nil) then
+		self.LblProjectileSpeed.color = ColourDark
+	end
+
+	if(not MountingEnable) then
+		self.LblMounting.color = ColourDark
 	end
 
 	return
