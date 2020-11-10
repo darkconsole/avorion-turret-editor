@@ -437,6 +437,65 @@ end
 
 --------
 
+function This:GetWeaponProjectileSpeed(Item)
+-- get how fast this turret projectile flies
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Weap.pvelocity == nil) then
+			return nil
+		end
+
+		return round(Weap.pvelocity,3)
+	end
+
+	return
+end
+
+function This:ModWeaponProjectileSpeed(Item,Per,Dont)
+-- modify the fire rate by a percent
+
+	local WeapList = {Item:getWeapons()}
+	local Value = 0
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		Value = ((Weap.pvelocity * (Per / 100)) + Weap.pvelocity)
+
+		if(Value < 0) then
+			Value = 0
+		end
+
+		if(Dont == true) then return Value end
+
+		Weap.pvelocity = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+function This:SetWeaponProjectileSpeed(Item,Value)
+-- modify the fire rate by a percent
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Value < 0) then
+			Value = 0
+		end
+
+		Weap.pvelocity = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+--------
+
 function This:GetWeaponTechLevel(Item)
 -- get this weapon's tech level
 

@@ -274,9 +274,6 @@ function Win:BuildUI()
 
 	--------
 
-
-	--------
-
 	self.BtnDamage = self.Window:createButton(
 		Rect(),
 		"Ammunition / Power",
@@ -407,6 +404,25 @@ function Win:BuildUI()
 	)
 	self.LblAccuracy.rect = FramedRect(self.UpgradeFrame,4,4,Cols,Rows)
 	self.LblAccuracy.centered = true
+
+	--------
+
+	self.BtnProjectileSpeed = self.Window:createButton(
+		Rect(),
+		"Accelerators",
+		"TurretModdingUI_OnClickedBtnProjectileSpeed"
+	)
+	self.BtnProjectileSpeed.textSize = FontSize3
+	self.BtnProjectileSpeed.rect = FramedRect(self.UpgradeFrame,5,3,Cols,Rows)
+	self.BtnProjectileSpeed.tooltip = "Increase the projectile velocity."
+
+	self.LblProjectileSpeed = self.Window:createLabel(
+		Rect(),
+		"$PSPEED",
+		FontSize3
+	)
+	self.LblProjectileSpeed.rect = FramedRect(self.UpgradeFrame,5,4,Cols,Rows)
+	self.LblProjectileSpeed.centered = true
 
 	--------
 
@@ -1048,6 +1064,7 @@ function Win:UpdateFields()
 	local Size = 0
 	local Slots = 0
 	local SlotUpgrade = 0
+	local PSpeed = 0
 	local MountingEnable = false
 	local FlakEnable = false
 	local CoolingEnable = false
@@ -1064,6 +1081,7 @@ function Win:UpdateFields()
 	local InfoSpeed = ""
 	local InfoMaxHeat = ""
 	local InfoSlots = ""
+	local InfoPSpeed = ""
 
 	if(Item ~= nil) then
 		WeaponType = TurretLib:GetWeaponType(Item.item)
@@ -1084,6 +1102,7 @@ function Win:UpdateFields()
 		Coaxial = TurretLib:GetWeaponCoaxial(Item.item)
 		Size = TurretLib:GetWeaponSize(Item.item)
 		Slots = TurretLib:GetWeaponSlots(Item.item)
+		PSpeed = TurretLib:GetWeaponProjectileSpeed(Item.item)
 		SlotUpgrade = self:GetBinMountingUpgrade(Item.item)
 
 		MountingEnable = self:ShouldAllowMountingUpgrade(Real)
@@ -1106,6 +1125,10 @@ function Win:UpdateFields()
 			InfoSpeed = " (+" .. round((TurretLib:ModWeaponSpeed(Item.item,BuffValue,true) - Speed),3) .. ")"
 			InfoMaxHeat = " (+" .. round((TurretLib:ModWeaponMaxHeat(Item.item,BuffValue,true) - MaxHeat),3) .. ")"
 			InfoSlots = " (-" .. SlotUpgrade ..  ")"
+
+			if(PSpeed ~= nil) then
+				InfoPSpeed = " (+" .. round((TurretLib:ModWeaponProjectileSpeed(Item.item,BuffValue,true) - PSpeed),3) .. ")"
+			end
 		end
 	end
 
@@ -1163,6 +1186,9 @@ function Win:UpdateFields()
 	self.BtnMounting.caption = "Reinforced Mount"
 	self.BtnMounting.active = MountingEnable
 	self.LblMounting.caption = Slots .. InfoSlots
+
+	self.BtnProjectileSpeed.active = (PSpeed ~= nil)
+	self.LblProjectileSpeed.caption = (PSpeed or "") .. InfoPSpeed
 
 	if(FixTargetingNerfEnable) then
 		self.BtnTargeting.caption = "Fix Auto Nerf (Cr. " .. toReadableValue(Config.CostTargeting) .. ")"
@@ -1927,6 +1953,33 @@ function Win:OnClickedBtnMkCool()
 	return
 end
 
+function Win:OnClickedBtnProjectileSpeed()
+-- raise weapon damage
+
+	local BuffValue = Win:CalculateBinItems()
+	local Mock, Real = Win:GetCurrentItems()
+
+	if(Mock == nil) then
+		PrintError("No turret selected")
+		return
+	end
+
+	if(BuffValue == 0.0) then
+		PrintError("No turrets in scrap bin")
+		return
+	end
+
+	if(TurretLib:GetWeaponProjectileSpeed(Real) == nil) then
+		PrintWarning("This turret instantly slaps your mom.")
+		return
+	end
+
+	TurretLib:ModWeaponProjectileSpeed(Real,BuffValue)
+
+	self:UpdateItems(Mock,Real)
+	return
+end
+
 --------------------------------------------------------------------------------
 
 function TurretModdingUI_Update(NewCurrentIndex)
@@ -1967,6 +2020,7 @@ function TurretModdingUI_OnClickedBtnSize(...) Win:OnClickedBtnSize(...) end
 function TurretModdingUI_OnClickedBtnMounting(...) Win:OnClickedBtnMounting(...) end
 function TurretModdingUI_OnClickedBtnMkFlak(...) Win:OnClickedBtnMkFlak(...) end
 function TurretModdingUI_OnClickedBtnMkCool(...) Win:OnClickedBtnMkCool(...) end
+function TurretModdingUI_OnClickedBtnProjectileSpeed(...) Win:OnClickedBtnProjectileSpeed(...) end
 
 --------------------------------------------------------------------------------
 
