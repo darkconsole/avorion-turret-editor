@@ -79,6 +79,9 @@ local Config = {
 	FlakCountRequirement = 3,
 	-- how many turrets required to convert an af turret to a flak cannon.
 
+	ProjectileSpeedMax = 850,
+	-- max cap for how fast players can raise the projectile speed.
+
 	Debug = true,
 	Experimental = false
 

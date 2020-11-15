@@ -1189,7 +1189,7 @@ function Win:UpdateFields()
 	self.LblMounting.caption = Slots .. InfoSlots
 	self.LblMounting.color = ColourLight
 
-	self.BtnProjectileSpeed.active = (PSpeed ~= nil)
+	self.BtnProjectileSpeed.active = (PSpeed ~= nil) and (PSpeed < Config.ProjectileSpeedMax)
 	self.LblProjectileSpeed.caption = (PSpeed or "") .. InfoPSpeed
 	self.LblProjectileSpeed.color = ColourLight
 

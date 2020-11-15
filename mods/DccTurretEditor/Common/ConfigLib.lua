@@ -31,6 +31,7 @@ local This = {
 	MountingRarityRequirement = 0,
 	MountingCountRequirement = 5,
 	FlakCountRequirement = 3,
+	ProjectileSpeedMax = 0,
 	Debug = false,
 	Experimental = false,
 
