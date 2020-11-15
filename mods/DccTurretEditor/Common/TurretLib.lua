@@ -437,6 +437,38 @@ end
 
 --------
 
+function This:GetWeaponProjectileSize(Item,Value)
+-- get the projectile size
+
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList) do
+		return round(Weap.psize,3)
+	end
+
+	return
+end
+
+function This:SetWeaponProjectileSize(Item,Value)
+-- get the projectile size
+
+	local WeapList = {Item:getWeapons()}
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do
+		if(Value < 0) then
+			Value = 0
+		end
+
+		Weap.psize = Value
+		Item:addWeapon(Weap)
+	end
+
+	return
+end
+
+--------
+
 function This:GetWeaponProjectileSpeed(Item)
 -- get how fast this turret projectile flies
 
@@ -1256,6 +1288,7 @@ function This:SetWeaponSize(Item,Val)
 -- set this turret's size
 
 	Item.size = Val
+	This:SetWeaponProjectileSize(Item,Val)
 	return
 end
 
