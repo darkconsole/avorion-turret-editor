@@ -189,6 +189,25 @@ function This:IsFinite(Value)
 
 	return true
 end
+
+function This:GetMaterialTypeByMaterial(Input)
+-- this may seem stupid but there appears to be no way to get the MaterialType
+-- out of a fucking Material object lmao.
+
+	local MatType = 1
+	local Mat = nil
+
+	for MatType=0, MaterialType.Avorion do
+		Mat = Material(MatType)
+
+		if(Mat == Input) then
+			return MatType
+		end
+	end
+
+	return nil
+end
+
 --------------------------------------------------------------------------------
 -- these ones need to deal with each individual weapon on the turret -----------
 
@@ -1341,6 +1360,20 @@ function This:ToggleWeaponTargeting(Item)
 
 	This:SetWeaponTargeting(Item,(not Item.automatic))
 	return
+end
+
+--------
+
+function This:GetWeaponMaterial(Item)
+-- get the weapon material
+
+	return Item.material
+end
+
+function This:GetWeaponMaterialType(Item)
+-- get the weapon material type
+
+	return This:GetMaterialTypeByMaterial(Item.material)
 end
 
 --------------------------------------------------------------------------------
