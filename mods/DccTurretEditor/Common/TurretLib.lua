@@ -1073,7 +1073,8 @@ function This:SetWeaponHeatRate(Item,Value)
 
 	if(not This:IsFinite(Item.shootingTime)) then
 		Item.heatPerShot = 0.0
-		Item.coolingRate = 0.0
+		Item.coolingRate = 1.0
+		Item.maxHeat = 0.0
 		Item.coolingType = CoolingType.Standard
 		Item:addDescription("[WeapEng] Fighter Factory Fix Applied (Heat Sinks)","")
 	end
