@@ -2,7 +2,7 @@
 
 ![Install Type](https://img.shields.io/badge/Install%20Type-Server%20%26%20Client-lightgrey.svg)
 ![Minimum Avorion Version](https://img.shields.io/badge/Avorion-0.33.2-lightgrey.svg)
-![Tested Avorion Version](https://img.shields.io/badge/Last%20Tested-1.3.1-lightgrey.svg)
+![Tested Avorion Version](https://img.shields.io/badge/Last%20Tested-1.3.4-lightgrey.svg)
 
 > *By the time we reach Jupiter Station, I don't want their engineers to have a
 > thing to do but give us a wash and a wax.*
@@ -36,10 +36,8 @@ some red beams and bullets.
 
 ## Upgrade Options
 
-* Heat Sinks - Reduces the heat generated per shot, and increases the cooldown
-  speed.
-* Capacitors - Reduces the base power requirement of a turret.
-* Transformers - Reduces the rate the energy use climbs.
+* Heat Sinks - Reduces the heat generated per shot, and increases the cooldown speed.
+* Radiators - Increase the amount of heat a turret can absorb before overheating.
 * Ammunition / Power Amps - Increase the flat damage of the turret.
 * Drive Motors - Increase how fast the turret can turn.
 * Barrel / Lenses - Increase the range a turret can hit at.
@@ -50,6 +48,7 @@ some red beams and bullets.
 * Colour HSV - Drag the sliders to change the colour of the beam or projectiles.
 * Reinforced Mounting - Reduce the slot cost of a turret. Requires scrapping 5 of the same quality or better.
 * Convert Anti-Fighter Turret to Flak Cannon. Requires scrapping 3 other AF turrets
+* Liquid Naonite Cooling System - Completely removes overheating from a turret for a pile of naonite and credits.
 
 
 
