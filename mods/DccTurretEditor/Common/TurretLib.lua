@@ -690,9 +690,9 @@ function This:ModWeaponDamage(Item,Per,Dont)
 	Item:clearWeapons()
 
 	for WeapIter,Weap in pairs(WeapList) do
-		Value = ((Weap.damage * (Per / 10)) + Weap.damage)
-		ValueH = ((Weap.hullRepair * (Per / 10)) + Weap.hullRepair)
-		ValueF = ((Weap.otherForce * (Per / 10)) + Weap.otherForce)
+		Value = ((Weap.damage * (Per / 100)) + Weap.damage)
+		ValueH = ((Weap.hullRepair * (Per / 100)) + Weap.hullRepair)
+		ValueF = ((Weap.otherForce * (Per / 100)) + Weap.otherForce)
 		
 		
 		if(Value < 0) then
@@ -895,12 +895,12 @@ function This:ModWeaponEfficiencyS(Item,Per,Dont)
 	Item:clearWeapons()
 
 	for WeapIter,Weap in pairs(WeapList) do	
-	ValueH = ((Weap.shieldRepair * (Per / 10)) + Weap.shieldRepair)
-	ValueF = ((Weap.selfForce * (Per / 10)) + Weap.selfForce)
+	ValueH = ((Weap.shieldRepair * (Per / 100)) + Weap.shieldRepair)
+	ValueF = ((Weap.selfForce * (Per / 100)) + Weap.selfForce)
 	if(Weap.stoneRawEfficiency > 0) then
-		ValueS = ((Weap.stoneRawEfficiency * (Per / 10)) + Weap.stoneRawEfficiency)
+		ValueS = ((Weap.stoneRawEfficiency * (Per / 100)) + Weap.stoneRawEfficiency)
 		else 
-		ValueS = ((Weap.stoneRefinedEfficiency * (Per / 10)) + Weap.stoneRefinedEfficiency)
+		ValueS = ((Weap.stoneRefinedEfficiency * (Per / 100)) + Weap.stoneRefinedEfficiency)
 		end
 
 		if(ValueS < 0) then
@@ -940,9 +940,9 @@ function This:ModWeaponEfficiencyM(Item,Per,Dont)
 
 	for WeapIter,Weap in pairs(WeapList) do
 	if(Weap.metalRawEfficiency > 0) then
-		ValueM = ((Weap.metalRawEfficiency * (Per / 10)) + Weap.metalRawEfficiency)
+		ValueM = ((Weap.metalRawEfficiency * (Per / 100)) + Weap.metalRawEfficiency)
 		else 
-		ValueM = ((Weap.metalRefinedEfficiency * (Per / 10)) + Weap.metalRefinedEfficiency)
+		ValueM = ((Weap.metalRefinedEfficiency * (Per / 100)) + Weap.metalRefinedEfficiency)
 		end
 
 		if(ValueM < 0) then
