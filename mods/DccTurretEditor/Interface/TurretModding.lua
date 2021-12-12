@@ -1,7 +1,6 @@
 --[[----------------------------------------------------------------------------
 AVORION: Turret Modding UI
 darkconsole <darkcee.legit@gmail.com>
-
 This script handles the UI for the Engineering Weapons Bay.
 ----------------------------------------------------------------------------]]--
 
@@ -1056,7 +1055,8 @@ function Win:UpdateFields()
 	local Speed = 0
 	local Range = 0
 	local Accuracy = 0
-	local Efficiency = 0
+	local EfficiencyS = 0
+	local EfficiencyM = 0
 	local Targeting = 0
 	local GunCount = 0
 	local Colour = Color()
@@ -1075,7 +1075,8 @@ function Win:UpdateFields()
 	local InfoRange = ""
 	local InfoDamage = ""
 	local InfoAccuracy = ""
-	local InfoEfficiency = ""
+	local InfoEfficiencyS = ""
+	local InfoEfficiencyM = ""
 	local InfoHeatRate = ""
 	local InfoCoolRate = ""
 	local InfoSpeed = ""
@@ -1095,7 +1096,8 @@ function Win:UpdateFields()
 		Speed = TurretLib:GetWeaponSpeed(Item.item)
 		Range = TurretLib:GetWeaponRange(Item.item)
 		Accuracy = TurretLib:GetWeaponAccuracy(Item.item)
-		Efficiency = TurretLib:GetWeaponEfficiency(Item.item)
+		EfficiencyS = TurretLib:GetWeaponEfficiencyS(Item.item)
+		EfficiencyM = TurretLib:GetWeaponEfficiencyM(Item.item)
 		Targeting = TurretLib:GetWeaponTargeting(Item.item)
 		GunCount = TurretLib:GetWeaponCount(Item.item)
 		Colour = TurretLib:GetWeaponColour(Item.item)
@@ -1119,7 +1121,8 @@ function Win:UpdateFields()
 			InfoDamage = InfoDamage .. "\n (+" .. round((TurretLib:ModWeaponDamage(Item.item,BuffValue,true) - Damage),3) .. ""
 			InfoDamage = InfoDamage .. ", " .. round((TurretLib:ModWeaponDamage(Item.item,BuffValue,true) * FireRate * GunCount),2) .. " DPS)"
 			InfoAccuracy = " (+" .. (round((TurretLib:ModWeaponAccuracy(Item.item,BuffValue,true) - Accuracy),4) * 100) .. "%)"
-			InfoEfficiency = " (+" .. (round((TurretLib:ModWeaponEfficiency(Item.item,BuffValue,true) - Efficiency),3) * 100) .. "%)"
+			InfoEfficiencyS = " (+" .. (round((TurretLib:ModWeaponEfficiencyS(Item.item,BuffValue,true) - EfficiencyS),3) * 100) .. "%)"
+			InfoEfficiencyM = " (+" .. (round((TurretLib:ModWeaponEfficiencyM(Item.item,BuffValue,true) - EfficiencyM),3) * 100) .. "%)"
 			InfoHeatRate = "\n (-" .. round((TurretLib:ModWeaponHeatRate(Item.item,(BuffValue + Config.NearZeroFloat),true) - HeatRate),3) .. ")"
 			InfoCoolRate = " (+" .. round((TurretLib:ModWeaponCoolRate(Item.item,BuffValue,true) - CoolRate),3) .. ")"
 			InfoSpeed = " (+" .. round((TurretLib:ModWeaponSpeed(Item.item,BuffValue,true) - Speed),3) .. ")"
@@ -1180,8 +1183,7 @@ function Win:UpdateFields()
 	self.LblAccuracy.color = ColourLight
 
 	self.BtnEfficiency.caption = "Phase Filters"
-	self.BtnEfficiency.active = (Efficiency > 0 and Efficiency < 1)
-	self.LblEfficiency.caption = (Efficiency * 100) .. "%" .. InfoEfficiency
+	self.LblEfficiency.caption = "Stone:" .. (EfficiencyS * 100) .. "% " .. InfoEfficiencyS .."Metal:" .. (EfficiencyM * 100) .. "%" .. InfoEfficiencyM 
 	self.LblEfficiency.color = ColourLight
 
 	self.BtnMounting.caption = "Reinforced Mount"
@@ -1218,6 +1220,21 @@ function Win:UpdateFields()
 		self.BtnRange.caption = "Lenses"
 		self.BtnDamage.caption = "Power Amplifiers"
 	end
+	if(WeaponType == "healing") then
+		self.BtnDamage.caption = "Nanobots"
+		self.LblDamage.caption = "Hull:" .. Damage .. InfoDamage
+		self.BtnEfficiency.caption = "Power Transformers"
+		self.LblEfficiency.caption = "Shield:" .. EfficiencyS .. InfoEfficiencyS
+		self.BtnRange.caption = "Modulators"
+	end
+	
+	if(WeaponType == "force") then
+		self.BtnDamage.caption = "Transformers"
+		self.LblDamage.caption = Damage .. InfoDamage
+		self.BtnEfficiency.caption = "Power Inventers"
+		self.LblEfficiency.caption = EfficiencyS .. InfoEfficiencyS
+		self.BtnRange.caption = "Modulators"
+	end
 
 	self.BtnMkFlak.active = FlakEnable
 	self.BtnMkCool.active = CoolingEnable
@@ -1253,9 +1270,10 @@ function Win:UpdateFields()
 		self.LblAccuracy.color = ColourDark
 	end
 
-	if((Efficiency == 0) or (Efficiency == 1)) then
+	if not((WeaponType == "healing") or (WeaponType == "force"))  then 
+	if(((EfficiencyS == 0) and (EfficiencyM == 0) or ((EfficiencyS == 1) and (EfficiencyM == 1))) then
 		self.LblEfficiency.color = ColourDark
-	end
+	end end
 
 	if(PSpeed == nil) then
 		self.LblProjectileSpeed.color = ColourDark
@@ -1605,7 +1623,7 @@ function Win:OnClickedBtnRange()
 end
 
 function Win:OnClickedBtnDamage()
--- raise weapon damage
+-- raise weapon damage/healing/force
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
@@ -1665,11 +1683,12 @@ function Win:OnClickedBtnAccuracy()
 end
 
 function Win:OnClickedBtnEfficiency()
--- raise rifficiency
+-- raise efficiency/shieldHealing/selfForce
 
 	local BuffValue = Win:CalculateBinItems()
 	local Mock, Real = Win:GetCurrentItems()
-	local CurrentValue = TurretLib:GetWeaponEfficiency(Real)
+	local CurrentValueS = TurretLib:GetWeaponEfficiencyS(Real)
+	local CurrentValueM = TurretLib:GetWeaponEfficiencyM(Real)
 
 	if(Mock == nil) then
 		PrintError("No turret selected")
@@ -1681,18 +1700,21 @@ function Win:OnClickedBtnEfficiency()
 		return
 	end
 
-	if(CurrentValue == 0) then
+	if(CurrentValueS + CurrentValueM == 0) then
 		PrintWarning("This turret has no efficiency apparently")
 		return
 	end
 
-	if(CurrentValue == 1) then
+	if(CurrentValueS + CurrentValueM == 2) or ((CurrentValueS == 1) and (CurrentValueM ==0)) or ((CurrentValueS == 0) and (CurrentValueM ==1)) 
+	then
 		PrintWarning("This turret is at max efficiency.")
 		return
 	end
 
-	TurretLib:ModWeaponEfficiency(Real,BuffValue)
-
+	TurretLib:ModWeaponEfficiencyS(Real,BuffValue)
+	TurretLib:ModWeaponEfficiencyM(Real,BuffValue)
+	
+	
 	self:UpdateItems(Mock,Real)
 	return
 end
