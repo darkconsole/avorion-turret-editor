@@ -212,7 +212,7 @@ end
 -- these ones need to deal with each individual weapon on the turret -----------
 
 function This:GetWeaponType(Item)
--- returns "projectile" or "beam"
+-- returns type depending on turret
 
 	local WeapList = {Item:getWeapons()}
 
@@ -221,20 +221,25 @@ function This:GetWeaponType(Item)
 		if(Weap.appearance == WeaponAppearance.RailGun) then
 			return "projectile"
 		end
-
+		if(Weap.hullRepair > 0) or (Weap.shieldRepair > 0) then 
+			return "healing" 
+		end
+		if(Weap.otherForce ~= 0) or (Weap.selfForce ~= 0) then 
+			return "force" 
+		end
 		if(Weap.isProjectile) then
 			return "projectile"
 		else
 			return "beam"
 		end
-
+		
 	end
 
-	return
+	--return
 end
 
 function This:GetWeaponRealType(Item)
--- returns "projectile" or "beam"
+-- returns apperance
 
 	local WeapList = {Item:getWeapons()}
 
@@ -469,7 +474,7 @@ function This:GetWeaponProjectileSize(Item,Value)
 end
 
 function This:SetWeaponProjectileSize(Item,Value)
--- get the projectile size
+-- set the projectile size
 
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
@@ -505,7 +510,7 @@ function This:GetWeaponProjectileSpeed(Item)
 end
 
 function This:ModWeaponProjectileSpeed(Item,Per,Dont)
--- modify the fire rate by a percent
+--  mod how fast this turret projectile flies
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -528,7 +533,7 @@ function This:ModWeaponProjectileSpeed(Item,Per,Dont)
 end
 
 function This:SetWeaponProjectileSpeed(Item,Value)
--- modify the fire rate by a percent
+--  set how fast this turret projectile flies
 
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
@@ -560,7 +565,7 @@ function This:GetWeaponTechLevel(Item)
 end
 
 function This:ModWeaponTechLevel(Item,Per,Dont)
--- modify the fire rate by a percent
+-- modify this weapon's tech level
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -583,7 +588,7 @@ function This:ModWeaponTechLevel(Item,Per,Dont)
 end
 
 function This:SetWeaponTechLevel(Item,Value)
--- modify the fire rate by a percent
+-- set this weapon's tech level
 
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
@@ -639,7 +644,7 @@ function This:ModWeaponRange(Item,Per,Dont)
 end
 
 function This:SetWeaponRange(Item,Value)
--- modify the range by a percent
+-- set the range by a percent
 
 	Value = Value * 100
 
@@ -661,35 +666,47 @@ end
 --------
 
 function This:GetWeaponDamage(Item)
--- get weapon range in km.
-
+-- get weapon damage/force/healing
 	local WeapList = {Item:getWeapons()}
 
 	for WeapIter,Weap in pairs(WeapList)
 	do
-		return round(Weap.damage,3)
+		
+		if(Weap.hullRepair > 0 ) then return round(Weap.hullRepair,3) else
+		if(Weap.otherForce ~= 0) then return round(Weap.otherForce,3) else
+		return round(Weap.damage,3) end end
 	end
 
 	return
 end
 
 function This:ModWeaponDamage(Item,Per,Dont)
--- modify the range by a percent
+-- modify the damage/force/healing by a percent
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
+	local ValueH = 0
+	local ValueF = 0
 	Item:clearWeapons()
 
 	for WeapIter,Weap in pairs(WeapList) do
-		Value = ((Weap.damage * (Per / 100)) + Weap.damage)
-
+		Value = ((Weap.damage * (Per / 10)) + Weap.damage)
+		ValueH = ((Weap.hullRepair * (Per / 10)) + Weap.hullRepair)
+		ValueF = ((Weap.otherForce * (Per / 10)) + Weap.otherForce)
+		
+		
 		if(Value < 0) then
 			Value = 0
+		end
+		if(ValueH < 0) then
+			ValueH = 0
 		end
 
 		if(Dont == true) then return Value end
 
 		Weap.damage = Value
+		Weap.hullRepair = ValueH
+		Weap.otherForce = ValueF
 		Item:addWeapon(Weap)
 	end
 
@@ -697,7 +714,7 @@ function This:ModWeaponDamage(Item,Per,Dont)
 end
 
 function This:SetWeaponDamage(Item,Value)
--- modify the range by a percent
+-- set the damage/force/healing by a percent
 
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
@@ -706,14 +723,18 @@ function This:SetWeaponDamage(Item,Value)
 		if(Value < 0) then
 			Value = 0
 		end
+		if(ValueH < 0) then
+			ValueH = 0
+		end
 
 		Weap.damage = Value
+		Weap.hullRepair = ValueH
+		Weap.otherForce = ValueF
 		Item:addWeapon(Weap)
 	end
 
 	return
 end
-
 --------
 
 function This:GetWeaponAccuracy(Item)
@@ -730,7 +751,7 @@ function This:GetWeaponAccuracy(Item)
 end
 
 function This:ModWeaponAccuracy(Item,Per,Dont)
--- set the accuracy
+-- modify the accuracy
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -755,7 +776,7 @@ function This:ModWeaponAccuracy(Item,Per,Dont)
 end
 
 function This:SetWeaponAccuracy(Item,Value)
--- modify the accuracy by a percent
+-- set the accuracy by a percent
 
 	local WeapList = {Item:getWeapons()}
 	Item:clearWeapons()
@@ -834,94 +855,121 @@ end
 
 --------
 
-function This:GetWeaponEfficiency(Item)
--- get weapon accuracy, autodetecting mining or scav.
+function This:GetWeaponEfficiencyS(Item)
+-- get weapon stone efficiency/healing/forceSelf
 
 	local WeapList = {Item:getWeapons()}
 
-	for WeapIter,Weap in pairs(WeapList)
-	do
-		if(Item.category == WeaponCategory.Mining) then
-			if(Weap.stoneRawEfficiency > 0.0) then
-				return round(Weap.stoneRawEfficiency,5)
-			else
-				return round(Weap.stoneRefinedEfficiency,5)
-			end
-		elseif(Item.category == WeaponCategory.Salvaging) then
-			if(Weap.metalRawEfficiency > 0.0) then
-				return round(Weap.metalRawEfficiency,5)
-			else
-				return round(Weap.metalRefinedEfficiency,5)
-			end
-		else
-			return 0
+	for WeapIter,Weap in pairs(WeapList)do
+		if(Weap.shieldRepair > 0 ) then return round(Weap.shieldRepair,3) end
+		if(Weap.selfForce ~= 0) then return round(Weap.selfForce,3)	end	
+		if(Weap.stoneRawEfficiency > 0) 
+			then return round(Weap.stoneRawEfficiency,3)
+			else return round(Weap.stoneRefinedEfficiency,3)
 		end
 	end
+end
+function This:GetWeaponEfficiencyM(Item)
+-- get weapon metal efficiency
 
+	local WeapList = {Item:getWeapons()}
+
+	for WeapIter,Weap in pairs(WeapList)do 
+	if(Weap.metalRawEfficiency > 0) then
+		round(Weap.metalRawEfficiency,5)
+		return round(Weap.metalRawEfficiency,3)
+		else round(Weap.metalRefinedEfficiency,5)
+		return round(Weap.metalRefinedEfficiency,3)
+	end
+	end
 	return
 end
 
-function This:ModWeaponEfficiency(Item,Per,Dont)
--- modify the accuracy by a percent, autodetecting mining or scav.
+function This:ModWeaponEfficiencyS(Item,Per,Dont)
+-- modify the stone efficiency/healing/forceSelf by a percent
 
 	local WeapList = {Item:getWeapons()}
-	local Value = 0
-	local Initial = 0
+	local ValueS = 0
+	local ValueH = 0
+	local ValueF = 0
+	Item:clearWeapons()
+
+	for WeapIter,Weap in pairs(WeapList) do	
+	ValueH = ((Weap.shieldRepair * (Per / 10)) + Weap.shieldRepair)
+	ValueF = ((Weap.selfForce * (Per / 10)) + Weap.selfForce)
+	if(Weap.stoneRawEfficiency > 0) then
+		ValueS = ((Weap.stoneRawEfficiency * (Per / 10)) + Weap.stoneRawEfficiency)
+		else 
+		ValueS = ((Weap.stoneRefinedEfficiency * (Per / 10)) + Weap.stoneRefinedEfficiency)
+		end
+
+		if(ValueS < 0) then
+			ValueS = 0.0
+		elseif(ValueS > 1) then
+			ValueS = 1.0
+		end
+		if(ValueH < 0) then
+			ValueH = 0
+		end
+		
+		if(Dont == true) then return ValueS end
+
+		if(Weap.stoneRawEfficiency > 0) then
+			print(" Modding Mining : " .. Item.weaponName .. " " .. Weap.stoneRawEfficiency .. " " .. ValueS)
+			
+				Weap.stoneRawEfficiency = ValueS
+				else
+				print(" Modding Mining : " .. Item.weaponName .. " " .. Weap.stoneRefinedEfficiency .. " " .. ValueS)
+			
+				Weap.stoneRefinedEfficiency = ValueS
+			end
+		Weap.shieldRepair = ValueH
+		Weap.selfForce = ValueF
+		
+		Item:addWeapon(Weap)
+	end
+	return
+end
+
+function This:ModWeaponEfficiencyM(Item,Per,Dont)
+-- modify the metal efficiency by a percent
+
+	local WeapList = {Item:getWeapons()}
+	local ValueM = 0
 	Item:clearWeapons()
 
 	for WeapIter,Weap in pairs(WeapList) do
-
-		if(Item.category == WeaponCategory.Mining) then
-			if(Weap.stoneRawEfficiency > 0.0) then
-				Initial = Weap.stoneRawEfficiency
-			else
-				Initial = Weap.stoneRefinedEfficiency
-			end
-		elseif(Item.category == WeaponCategory.Salvaging) then
-			if(Weap.metalRawEfficiency > 0.0) then
-				Initial = Weap.metalRawEfficiency
-			else
-				Initial = Weap.metalRefinedEfficiency
-			end
+	if(Weap.metalRawEfficiency > 0) then
+		ValueM = ((Weap.metalRawEfficiency * (Per / 10)) + Weap.metalRawEfficiency)
+		else 
+		ValueM = ((Weap.metalRefinedEfficiency * (Per / 10)) + Weap.metalRefinedEfficiency)
 		end
 
-		Value = ((Initial * (Per / 100)) + Initial)
-
-		if(Value < 0) then
-			Value = 0.0
-		elseif(Value > 1) then
-			Value = 1.0
+		if(ValueM < 0) then
+			ValueM = 0.0
+		elseif(ValueM > 1) then
+			ValueM = 1.0
 		end
 
-		if(Dont == true) then return Value end
+		if(Dont == true) then return ValueM end
 
-		-- it appears there is a bug where stone and metal eff may not be
-		-- included in the decision on if items should stack or not. so,
-		-- we will also include a super stupid damage increase until koon
-		-- gets back with me on it.
-
-		if(Item.category == WeaponCategory.Mining) then
-			print("[DccTurretEditor] Modding Mining Gun: " .. Item.weaponName .. " " .. Initial .. " " .. Value)
-			if(Weap.stoneRawEfficiency > 0.0) then
-				Weap.stoneRawEfficiency = Value
-			else
-				Weap.stoneRefinedEfficiency = Value
+		if(Weap.metalRawEfficiency > 0) then
+			
+			print(" Modding Salvaging : " .. Item.weaponName .. " " .. Weap.metalRawEfficiency .. " " .. ValueM)
+			
+				Weap.metalRawEfficiency = ValueM
+				else
+				print(" Modding Salvaging : " .. Item.weaponName .. " " .. Weap.metalRefinedEfficiency .. " " .. ValueM)
+			
+				Weap.metalRefinedEfficiency = ValueM
 			end
-		elseif(Item.category == WeaponCategory.Salvaging) then
-			print("[DccTurretEditor] Modding Scav Gun: " .. Item.weaponName .. " " .. Initial .. " " .. Value)
-			if(Weap.metalRawEfficiency > 0.0) then
-				Weap.metalRawEfficiency = Value
-			else
-				Weap.metalRefinedEfficiency = Value
-			end
-		end
+		
 
 		Item:addWeapon(Weap)
 	end
-
 	return
+	
 end
-
 --------
 
 function This:GetWeaponColour(Item)
@@ -941,7 +989,7 @@ function This:GetWeaponColour(Item)
 end
 
 function This:SetWeaponColour(Item,Colour)
--- modify the fire rate by a percent
+-- modify the colour of this turret
 
 	local WeapList = {Item:getWeapons()}
 	local Value = 0
@@ -1022,7 +1070,7 @@ end
 --------
 
 function This:GetWeaponCategory(Item)
--- returns the WeaponType
+-- returns the WeaponCategory
 
 	return Item.category
 end
@@ -1154,13 +1202,13 @@ end
 --------
 
 function This:GetWeaponCoolingType(Item)
--- set a weapon's max heat.
-
+-- get weapon's cooling type
+	
 	return Item.coolingType
 end
 
 function This:SetWeaponCoolingType(Item,Value)
--- set a weapon's max heat.
+-- set a weapon's cooling type
 
 	if(Value < 0) then
 		Value = 0
@@ -1194,7 +1242,7 @@ function This:ModWeaponBaseEnergy(Item,Per,Dont)
 end
 
 function This:SetWeaponBaseEnergy(Item,Value)
--- modify the base energy value by a percent.
+-- set the base energy value by a percent.
 
 	if(Value < 0) then
 		Value = 0
@@ -1270,7 +1318,7 @@ function This:GetWeaponCoaxial(Item)
 end
 
 function This:SetWeaponCoaxial(Item,Val)
--- set automatic targeting.
+-- set coaxiality
 
 	Item.coaxial = Val
 
@@ -1289,7 +1337,7 @@ function This:SetWeaponCoaxial(Item,Val)
 end
 
 function This:ToggleWeaponCoaxial(Item)
--- set automatic targeting.
+-- set automatic targeting
 
 	This:SetWeaponCoaxial(Item,(not Item.coaxial))
 
@@ -1315,13 +1363,13 @@ end
 --------
 
 function This:GetWeaponSlots(Item)
--- get this turret's size
-
+-- get this turret's slots
+	
 	return Item.slots
 end
 
 function This:SetWeaponSlots(Item,Val)
--- set this turret's size
+-- set this turret's slots
 
 	if(Val < 0) then
 		-- we can totally make 0 slot turrets and it will let us mount as
